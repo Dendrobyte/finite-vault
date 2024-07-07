@@ -7,11 +7,14 @@ export const useUserdataStore = defineStore('userdata', () => {
   const balance = ref(0.0)
   const dailyNumber = 4
   const expenses = ref([{ amount: 4, description: 'Nothing' }])
+  const loggedIn = ref(false)
 
   // Computeds become getters
   const getBalance = computed(() => balance.value)
 
   const getExpenses = computed(() => expenses.value)
+
+  const isLoggedIn = computed(() => loggedIn.value);
 
   // Functions become actions
   function incrementForDay() {
@@ -26,6 +29,7 @@ export const useUserdataStore = defineStore('userdata', () => {
   function logInUser(inputUsername: string, inputPassword: string) {
     username.value = inputUsername
     balance.value = 17.41
+    loggedIn.value = true
     console.log(`Logged in with password ${inputPassword}`)
   }
 
@@ -37,6 +41,7 @@ export const useUserdataStore = defineStore('userdata', () => {
     incrementForDay,
     logInUser,
     fileNewExpense,
-    getExpenses
+    getExpenses,
+    isLoggedIn
   }
 })

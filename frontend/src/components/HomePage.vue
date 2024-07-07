@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import ExpenseRow from '@/components/ExpenseRow.vue'
 import { useUserdataStore } from '@/stores/userdata'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import router from '@/router'
 
 // Pull username from state
 const userdata = useUserdataStore()
@@ -14,6 +15,13 @@ function fileExpense() {
   expenseAmount.value = 0.0
   expenseReason.value = ''
 }
+
+onMounted(() => {
+  if (!userdata.isLoggedIn) {
+    console.log('Sending back!')
+    router.push('/')
+  }
+})
 </script>
 
 <template>
