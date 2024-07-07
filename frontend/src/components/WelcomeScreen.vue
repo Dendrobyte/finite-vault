@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import router from '@/router'
+import { useSimpleLoginStore } from '@/stores/simplelogin'
 import { useUserdataStore } from '@/stores/userdata'
 import axios from 'axios'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 const userdata = useUserdataStore()
+const simpleLoginState = useSimpleLoginStore()
+const route = useRoute()
 
 const username = ref('')
 const isError = ref(false)
 const errorMessage = ref('Something went wrong')
+
+// Move this :hmmge:
+const clientId = 'finitevault-ipopqvkgvm'
 
 // TODO: Move this also
 type User = {
@@ -23,27 +30,56 @@ function triggerLoginFlow(user: User) {
   router.push('home')
 }
 
-const oauthCallback = async (response: any) => {
+const oauthCallbackGoogle = async (response: any) => {
   if (response.credential) {
     await axios
-      .post('http://localhost:8080/login', {
+      .post('http://localhost:8080/login_google', {
         token: response.credential
       })
       .then((res) => {
         let userInfo: User = res.data.user_info
         triggerLoginFlow(userInfo)
-        //loginSuccess(userdata.logInUser(res.username, res.balance))
         isError.value = false
       })
       .catch((err) => {
         isError.value = true
-        errorMessage.value = 'Error: ' + err
+        errorMessage.value = 'Google login failed: ' + err
       })
   } else {
     isError.value = true
     errorMessage.value = 'OAuth login failed.'
   }
 }
+
+function startSimpleLoginSignin() {
+  let redirect_uri: string = 'http://localhost:5173/'
+  let authUrl = `https://app.simplelogin.io/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirect_uri}&scope=profile&state=${{ state: 'noidea' }}`
+  location.href = authUrl
+}
+
+async function endSimpleLoginSignin(code: string) {
+  await axios
+    .post('http://localhost:8080/login_proton', {
+      token: code
+    })
+    .then((res) => {
+      let userInfo: User = res.data.user_info // TODO: Of course, refactor and modularize
+      triggerLoginFlow(userInfo)
+      isError.value = false
+    })
+    .catch((err) => {
+      isError.value = true
+      errorMessage.value = 'Proton login failed: ' + err
+    })
+}
+
+onMounted(() => {
+  // SimpleLogin redirect uri set to the same page, so check for a code query
+  // TODO: If there's time, make the thing a popup window and make a "mid" component to handle the redirection
+  if (route.query.code) {
+    endSimpleLoginSignin(String(route.query.code))
+  }
+})
 </script>
 
 <template>
@@ -53,7 +89,10 @@ const oauthCallback = async (response: any) => {
     <label for="username" class="username-box">Enter your username: </label>
     <input v-model="username" name="username" /><br />
     <p v-if="isError" class="error-text">{{ errorMessage }}</p>
-    <GoogleLogin :callback="oauthCallback" class="google-button" />
+    <GoogleLogin :callback="oauthCallbackGoogle" class="google-button" />
+    <button @click="startSimpleLoginSignin" class=".login-button">
+      Sign in with Proton / Simple Login
+    </button>
   </div>
 </template>
 

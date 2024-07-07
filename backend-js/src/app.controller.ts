@@ -11,8 +11,10 @@ const client = new OAuth2Client(
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Post('/login')
-  async login(@Body('token') token): Promise<any> {
+  // TODO: Is there a better way to organize this?
+  //       Make an if statement that changes the process based on a service name, thus we aren't making duplicate calls to appService.loginUser
+  @Post('/login_google')
+  async loginGoogle(@Body('token') token): Promise<any> {
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -24,5 +26,10 @@ export class AppController {
       user_info,
       message: 'Success',
     };
+  }
+
+  @Post('/login_proton')
+  async loginProton(@Body('token') token): Promise<any> {
+    console.log('User auth token accepted is: ' + token);
   }
 }
