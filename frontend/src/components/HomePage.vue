@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import ExpenseRow from '@/components/ExpenseRow.vue'
-import { useUserdataStore } from '@/stores/userdata'
-import { ref, onMounted } from 'vue'
 import router from '@/router'
+import { useUserdataStore } from '@/stores/userdata'
+import { onMounted, ref } from 'vue'
 
 // Pull username from state
 const userdata = useUserdataStore()
@@ -22,9 +22,16 @@ onMounted(() => {
     router.push('/')
   }
 })
+
+/* DEVELOPER BUTTON CALLBACK FUNCTIONS */
+// These are used to "simulate" certain behavior. Should be deleted once everything is confirmed.
 </script>
 
 <template>
+  <!-- START OF DEVELOPER BUTTONS -->
+
+  <!-- END OF DEVELOPER BUTTONS -->
+
   <p>Welcome to the home page, {{ userdata.username }}</p>
   <p>Your balance is ${{ userdata.balance }}</p>
 

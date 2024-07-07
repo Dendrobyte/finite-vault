@@ -4,6 +4,8 @@ defineProps({
   description: String
   // TODO: Date
 })
+
+// TODO: Lowkey everything. Don't forget trash icon.
 </script>
 
 <template>

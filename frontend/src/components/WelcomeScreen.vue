@@ -10,24 +10,13 @@ const username = ref('')
 const isError = ref(false)
 const errorMessage = ref('Something went wrong')
 
-// TODO: Changing this to use a token stored in local storage and updating the state if the page refreshes or something
-function loginSuccess() {
-  if (username.value === '') {
-    errorMessage.value = 'Username cannot be empty (for now)'
-    isError.value = true
-  } else {
-    userdata.logInUser(username.value, 4444)
-    router.push('home')
-  }
-}
-
 // TODO: Move this also
 type User = {
   name: string
   balance: number
 }
 
-// TODO: Rename when you get rid of the above function
+// TODO: Changing this to use a token stored in local storage and updating the state if the page refreshes or something
 function triggerLoginFlow(user: User) {
   userdata.logInUser(user.name, user.balance)
   console.log('Just logged in a user with ' + user.name + ' and a balance of ' + user.balance)
@@ -65,7 +54,6 @@ const oauthCallback = async (response: any) => {
     <input v-model="username" name="username" /><br />
     <p v-if="isError" class="error-text">{{ errorMessage }}</p>
     <GoogleLogin :callback="oauthCallback" class="google-button" />
-    <button @click="loginSuccess" class="login-button">FALSE BUTTON (for testing)</button>
   </div>
 </template>
 
