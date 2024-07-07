@@ -25,6 +25,7 @@ function loginSuccess() {
 <template>
   <div class="greetings">
     <h1 class="welcome-text">Welcome to Finite Vault!</h1>
+    <img src="../assets/img/chest_kenney.png" class="logo" />
     <label for="username" class="username-box">Enter your username: </label>
     <input v-model="username" name="username" /><br />
     <p v-if="isError" class="error-text">{{ errorMessage }}</p>
@@ -38,6 +39,12 @@ function loginSuccess() {
 .welcome-text {
   color: var(--header-gold);
   padding: 20px;
+}
+
+.logo {
+  width: 80%;
+  margin: 0px auto;
+  display: block;
 }
 
 .login-button {
