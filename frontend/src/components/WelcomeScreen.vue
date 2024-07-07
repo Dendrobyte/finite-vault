@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import router from '@/router'
 import { useUserdataStore } from '@/stores/userdata'
+import axios from 'axios'
 import { ref } from 'vue'
 
 const userdata = useUserdataStore()
 
 const username = ref('')
-const password = ref('Dummy Password')
 const isError = ref(false)
 const errorMessage = ref('Something went wrong')
 
@@ -16,8 +16,43 @@ function loginSuccess() {
     errorMessage.value = 'Username cannot be empty (for now)'
     isError.value = true
   } else {
-    userdata.logInUser(username.value, password.value)
+    userdata.logInUser(username.value, 4444)
     router.push('home')
+  }
+}
+
+// TODO: Move this also
+type User = {
+  name: string
+  balance: number
+}
+
+// TODO: Rename when you get rid of the above function
+function triggerLoginFlow(user: User) {
+  userdata.logInUser(user.name, user.balance)
+  console.log('Just logged in a user with ' + user.name + ' and a balance of ' + user.balance)
+  router.push('home')
+}
+
+const oauthCallback = async (response: any) => {
+  if (response.credential) {
+    await axios
+      .post('http://localhost:8080/login', {
+        token: response.credential
+      })
+      .then((res) => {
+        let userInfo: User = res.data.user_info
+        triggerLoginFlow(userInfo)
+        //loginSuccess(userdata.logInUser(res.username, res.balance))
+        isError.value = false
+      })
+      .catch((err) => {
+        isError.value = true
+        errorMessage.value = 'Error: ' + err
+      })
+  } else {
+    isError.value = true
+    errorMessage.value = 'OAuth login failed.'
   }
 }
 </script>
@@ -29,7 +64,8 @@ function loginSuccess() {
     <label for="username" class="username-box">Enter your username: </label>
     <input v-model="username" name="username" /><br />
     <p v-if="isError" class="error-text">{{ errorMessage }}</p>
-    <button @click="loginSuccess" class="login-button">Log In With Google</button>
+    <GoogleLogin :callback="oauthCallback" class="google-button" />
+    <button @click="loginSuccess" class="login-button">FALSE BUTTON (for testing)</button>
   </div>
 </template>
 
@@ -47,6 +83,12 @@ function loginSuccess() {
   display: block;
 }
 
+.google-button {
+  display: block;
+  padding: 1em;
+  margin: 1em;
+}
+
 .login-button {
   background-color: white;
   border: none;
@@ -55,7 +97,7 @@ function loginSuccess() {
   margin: 2em;
   text-align: center;
   text-decoration: none;
-  display: inline-block;
+  display: block;
   font-size: 16px;
 }
 

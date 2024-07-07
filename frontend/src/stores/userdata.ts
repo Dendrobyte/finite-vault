@@ -26,11 +26,11 @@ export const useUserdataStore = defineStore('userdata', () => {
     expenses.value.push({ amount: amount, description: reason })
   }
 
-  function logInUser(inputUsername: string, inputPassword: string) {
+  function logInUser(inputUsername: string, givenBalance: number) {
     username.value = inputUsername
-    balance.value = 17.41
+    balance.value = givenBalance
+    console.log("state should be updated for these: " + username.value + " | " + username.value)
     loggedIn.value = true
-    console.log(`Logged in with password ${inputPassword}`)
   }
 
   return {
