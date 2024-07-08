@@ -18,7 +18,7 @@ function fileExpense() {
 
 onMounted(() => {
   if (!userdata.isLoggedIn) {
-    console.log('Sending back!')
+    console.log('No login session present!')
     router.push('/')
   }
 })

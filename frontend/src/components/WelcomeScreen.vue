@@ -27,7 +27,6 @@ type User = {
 // TODO: Changing this to use a token stored in local storage and updating the state if the page refreshes or something
 function triggerLoginFlow(user: User) {
   userdata.logInUser(user.name, user.balance)
-  console.log('Just logged in a user with ' + user.name + ' and a balance of ' + user.balance)
   router.push('home')
 }
 
@@ -69,7 +68,6 @@ async function endSimpleLoginSignin(code: string) {
       redirect_uri: redirect_uri
     })
     .then((res) => {
-      console.log(JSON.stringify(res))
       let userInfo: User = res.data.user_info // TODO: Of course, refactor and modularize
       triggerLoginFlow(userInfo)
       isError.value = false
