@@ -5,8 +5,8 @@ import { User, UserDocument } from './db/user.schema';
 
 // TODO: Move this to somewhere that makes more sense
 type BaseUser = {
-  email: string;
   name: string;
+  email: string;
 };
 
 @Injectable()
@@ -16,7 +16,7 @@ export class AppService {
   // Handle obtaining initial information for a stored user in our Mongo database
   // TODO: Check for username field, if not present then use name?
   //       Or on initial creation, set username to name.
-  async loginUser({ email, name }: BaseUser): Promise<any> {
+  async loginUser({ name, email }: BaseUser): Promise<any> {
     const user = await this.userModel.findOne({ email: email });
     if (!user) {
       const newUser = new this.userModel({ email, name, balance: 0 });

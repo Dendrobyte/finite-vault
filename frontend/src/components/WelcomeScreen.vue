@@ -7,7 +7,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const userdata = useUserdataStore()
-const simpleLoginState = useSimpleLoginStore()
+const simpleLoginState = useSimpleLoginStore() // Not sure if I need this anymore. Security thing?
 const route = useRoute()
 
 const username = ref('')
@@ -15,7 +15,8 @@ const isError = ref(false)
 const errorMessage = ref('Something went wrong')
 
 // Move this :hmmge:
-const clientId = 'finitevault-ipopqvkgvm'
+const clientId: string = 'finitevault-ipopqvkgvm' // SimpleLogin client ID
+const redirect_uri: string = 'http://localhost:5173'
 
 // TODO: Move this also
 type User = {
@@ -37,6 +38,7 @@ const oauthCallbackGoogle = async (response: any) => {
         token: response.credential
       })
       .then((res) => {
+        console.log(JSON.stringify(res))
         let userInfo: User = res.data.user_info
         triggerLoginFlow(userInfo)
         isError.value = false
@@ -52,17 +54,22 @@ const oauthCallbackGoogle = async (response: any) => {
 }
 
 function startSimpleLoginSignin() {
-  let redirect_uri: string = 'http://localhost:5173/'
+  console.log('Attempting login start')
+  // TODO: Work out a .env here so that on cloudflare you can use the proper https://finite-vault.pages.dev/ domain
+  //       Worth coming back to when the basic routes are working and spitting back some information
   let authUrl = `https://app.simplelogin.io/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirect_uri}&scope=profile&state=${{ state: 'noidea' }}`
   location.href = authUrl
 }
 
 async function endSimpleLoginSignin(code: string) {
+  console.log('Attempting simple login end')
   await axios
     .post('http://localhost:8080/login_proton', {
-      token: code
+      token: code, // NTS: If you wanted to type these, they are inferred based on what's given. It's out of our control anyway I think?
+      redirect_uri: redirect_uri
     })
     .then((res) => {
+      console.log(JSON.stringify(res))
       let userInfo: User = res.data.user_info // TODO: Of course, refactor and modularize
       triggerLoginFlow(userInfo)
       isError.value = false
