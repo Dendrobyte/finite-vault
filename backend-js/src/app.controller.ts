@@ -44,6 +44,8 @@ const verifySimpleLoginCode = async (code, redirect_uri) => {
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  // Alongside making a generic login route, that's where yo ugenerate the JWT
+  // -- https://docs.nestjs.com/security/authentication
   // TODO: Is there a better way to organize this?
   //       Make an if statement that changes the process based on a service name, thus we aren't making duplicate calls to appService.loginUser
   @Post('/login_google')

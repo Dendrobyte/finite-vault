@@ -2,6 +2,9 @@
 import { RouterView } from 'vue-router'
 import { useUserdataStore } from './stores/userdata'
 
+/* FOR HOSTING TO PROD */
+// Check the launch params here for environments: https://cli.vuejs.org/guide/mode-and-env.html
+
 useUserdataStore() // Initialize store (maybe not needed since called on welcome screen?)
 // TODO: Check local storage for a token and check that information.
 // TODO: Route respectively (e.g. if already logged in / there is a token and it's valid, make sure we redirect to the home page)

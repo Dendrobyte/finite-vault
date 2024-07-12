@@ -1,74 +1,63 @@
 <script setup lang="ts">
 import router from '@/router'
-import { useSimpleLoginStore } from '@/stores/simplelogin'
 import { useUserdataStore } from '@/stores/userdata'
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { type User } from '../types/User'
 
 const userdata = useUserdataStore()
-const simpleLoginState = useSimpleLoginStore() // Not sure if I need this anymore. Security thing?
 const route = useRoute()
 
-const username = ref('')
 const isError = ref(false)
 const errorMessage = ref('Something went wrong')
 
-// Move this :hmmge:
-const clientId: string = 'finitevault-ipopqvkgvm' // SimpleLogin client ID
-const redirect_uri: string = 'http://localhost:5173'
+const CLIENT_ID: string = import.meta.env.VITE_SIMPLE_LOGIN_CLIENT_ID // SimpleLogin client ID
+const REDIRECT_URI: string = import.meta.env.VITE_ROOT_URI
+const BACKEND_URI: string = import.meta.env.VITE_BACKEND_URI
 
-// TODO: Move this also
-type User = {
-  name: string
-  balance: number
-}
-
-// TODO: Changing this to use a token stored in local storage and updating the state if the page refreshes or something
 function triggerLoginFlow(user: User) {
-  userdata.logInUser(user.name, user.balance)
+  // TODO: Send along timestamp in the response of a request here, triggers update function in the store
+  userdata.logInUser(user.username, user.balance)
   router.push('home')
 }
 
+/* OAuth login functions */
 const oauthCallbackGoogle = async (response: any) => {
   if (response.credential) {
     await axios
-      .post('http://localhost:8080/login_google', {
+      .post(`${BACKEND_URI}/login_google`, {
         token: response.credential
       })
       .then((res) => {
-        console.log(JSON.stringify(res))
         let userInfo: User = res.data.user_info
         triggerLoginFlow(userInfo)
         isError.value = false
       })
       .catch((err) => {
         isError.value = true
-        errorMessage.value = 'Google login failed: ' + err
+        errorMessage.value = 'Google OAuth login failed: ' + err
       })
   } else {
     isError.value = true
-    errorMessage.value = 'OAuth login failed.'
+    errorMessage.value = 'Google OAuth login failed due to an undefined response.'
   }
 }
 
 function startSimpleLoginSignin() {
-  console.log('Attempting login start')
   // TODO: Work out a .env here so that on cloudflare you can use the proper https://finite-vault.pages.dev/ domain
-  //       Worth coming back to when the basic routes are working and spitting back some information
-  let authUrl = `https://app.simplelogin.io/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirect_uri}&scope=profile&state=${{ state: 'noidea' }}`
+  let authUrl = `https://app.simplelogin.io/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=profile&state=${{ state: 'noidea' }}`
   location.href = authUrl
 }
 
 async function endSimpleLoginSignin(code: string) {
-  console.log('Attempting simple login end')
   await axios
-    .post('http://localhost:8080/login_proton', {
-      token: code, // NTS: If you wanted to type these, they are inferred based on what's given. It's out of our control anyway I think?
-      redirect_uri: redirect_uri
+    .post(`${BACKEND_URI}/login_proton`, {
+      token: code,
+      redirect_uri: REDIRECT_URI
     })
     .then((res) => {
-      let userInfo: User = res.data.user_info // TODO: Of course, refactor and modularize
+      let userInfo: User = res.data.user_info
       triggerLoginFlow(userInfo)
       isError.value = false
     })
@@ -84,6 +73,9 @@ onMounted(() => {
   if (route.query.code) {
     endSimpleLoginSignin(String(route.query.code))
   }
+
+  // TODO: Check for a token in the local storage. If present, verify on backend and redirect.
+  //       Otherwise, show an error message saying that the found token is expired.
 })
 </script>
 
@@ -91,11 +83,11 @@ onMounted(() => {
   <div class="greetings">
     <h1 class="welcome-text">Welcome to Finite Vault!</h1>
     <img src="../assets/img/chest_kenney.png" class="logo" />
-    <label for="username" class="username-box">Enter your username: </label>
-    <input v-model="username" name="username" /><br />
+    <label for="username" class="username-box">Select a login method below</label>
     <p v-if="isError" class="error-text">{{ errorMessage }}</p>
     <GoogleLogin :callback="oauthCallbackGoogle" class="google-button" />
     <button @click="startSimpleLoginSignin" class=".login-button">
+      <!-- TODO: I would like to see a component here, perhaps the same one for redirection, where it informs someone about the email "clause" of this app. -->
       Sign in with Proton / Simple Login
     </button>
   </div>
