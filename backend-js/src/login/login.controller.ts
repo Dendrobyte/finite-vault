@@ -1,11 +1,11 @@
 import {
-    Body,
-    Controller,
-    Get,
-    HttpStatus,
-    Param,
-    Post,
-    Res,
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Res,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LoginService } from './login.service';
@@ -23,6 +23,13 @@ export class LoginController {
   @Get()
   default(): string {
     return 'Ohaiio';
+  }
+
+  /* THIS IS A DEVELOPMENT LOGIN FUNCTION TO AVOID REQUIRING FRONTEND. REMOVE ON PRODUCTION. */
+  // TODO: Create a token generation tool if necessary, otherwise use a built-up test suite
+  @Post('test')
+  async fakeLogin() {
+    const token = this.loginService.generateJWT({ email: 'test@test.com' });
   }
 
   @Post(':service')
