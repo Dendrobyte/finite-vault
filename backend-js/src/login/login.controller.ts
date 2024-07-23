@@ -30,6 +30,8 @@ export class LoginController {
   @Post('test')
   async fakeLogin() {
     const token = this.loginService.generateJWT({ email: 'test@test.com' });
+    this.loginService.loginUser({ name: 'Mark', email: 'test@test.com' });
+    return token;
   }
 
   @Post(':service')

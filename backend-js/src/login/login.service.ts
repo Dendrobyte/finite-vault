@@ -65,7 +65,7 @@ export class LoginService {
   }
 
   /* Hits the database to either create a user or find an existing one based on email */
-  // TODO: Return JWT token as well
+  // TODO: Return JWT token as well here
   async loginUser({ name, email }): Promise<any> {
     const user = await this.userModel.findOne({ email: email });
     if (!user) {
