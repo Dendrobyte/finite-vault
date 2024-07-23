@@ -43,6 +43,7 @@ export class LoginController {
     @Body('redirect_uri') redirect_uri: string,
     @Res({ passthrough: true }) res: Response,
   ) {
+    // TODO: Modifying logic flow so we can log successful login and return more succinctly
     if (service === 'google') {
       console.log('Triggering login with google');
       await this.loginService
@@ -66,7 +67,6 @@ export class LoginController {
       await this.loginService
         .loginProton(token, redirect_uri)
         .then((userInfo) => {
-          console.log(userInfo);
           const user_data: UserLoginResponseObject = {
             username: userInfo.username,
             email: userInfo.email,

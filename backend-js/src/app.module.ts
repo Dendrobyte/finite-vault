@@ -19,7 +19,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_TOKEN_SECRET,
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: 60 * 60 },
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),
