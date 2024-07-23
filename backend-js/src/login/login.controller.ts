@@ -13,7 +13,7 @@ import { LoginService } from './login.service';
 type UserLoginResponseObject = {
   username: string;
   email: string;
-  authToken: string; // TODO: This might become a JWT type or something, but for now let's just string.
+  auth_token: string; // TODO: This might become a JWT type or something, but for now let's just string.
 };
 
 @Controller('login')
@@ -29,9 +29,11 @@ export class LoginController {
   // TODO: Create a token generation tool if necessary, otherwise use a built-up test suite
   @Post('test')
   async fakeLogin() {
-    const token = this.loginService.generateJWT({ email: 'test@test.com' });
-    this.loginService.loginUser({ name: 'Mark', email: 'test@test.com' });
-    return token;
+    const fake_res = await this.loginService.loginUser({
+      name: 'Mark',
+      email: 'test@test.com',
+    });
+    return fake_res;
   }
 
   @Post(':service')
@@ -49,7 +51,7 @@ export class LoginController {
           const user_data: UserLoginResponseObject = {
             username: userInfo.username,
             email: userInfo.email,
-            authToken: 'abc123',
+            auth_token: userInfo.auth_token,
           };
           return {
             user_data,
@@ -68,7 +70,7 @@ export class LoginController {
           const user_data: UserLoginResponseObject = {
             username: userInfo.username,
             email: userInfo.email,
-            authToken: 'xyz456',
+            auth_token: userInfo.auth_token,
           };
           return {
             user_data,

@@ -12,9 +12,11 @@ const googleClient = new OAuth2Client(
 );
 
 type UserInfo = {
+  auth_token: string;
   username: string;
   email: string;
   balance: number;
+  token: string;
 };
 
 type JWTPayload = {
@@ -60,7 +62,7 @@ export class LoginService {
   // Create a JWT token for authentication purposes
   async generateJWT(payload: JWTPayload) {
     // We only need the email for the payload
-    const token = await this.jwtService.signAsync(payload.email);
+    const token = await this.jwtService.signAsync(payload);
     return token;
   }
 
@@ -68,6 +70,7 @@ export class LoginService {
   // TODO: Return JWT token as well here
   async loginUser({ name, email }): Promise<any> {
     const user = await this.userModel.findOne({ email: email });
+    const auth_token = await this.generateJWT({ email: email });
     if (!user) {
       const newUser = new this.userModel({ email, name, balance: 0 });
       await newUser.save();
@@ -75,12 +78,14 @@ export class LoginService {
         username: newUser.name,
         email: newUser.email,
         balance: newUser.balance,
+        token: auth_token,
       };
     } else {
       return {
         username: user.name,
         email: user.email,
         balance: user.balance,
+        token: auth_token,
       };
     }
   }
