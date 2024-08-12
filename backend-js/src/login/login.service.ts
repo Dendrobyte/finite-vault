@@ -4,6 +4,7 @@ import axios from 'axios';
 import { OAuth2Client } from 'google-auth-library';
 import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/db/user.schema';
+import { JwtService } from '@nestjs/jwt';
 
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -11,9 +12,15 @@ const googleClient = new OAuth2Client(
 );
 
 type UserInfo = {
+  auth_token: string;
   username: string;
   email: string;
   balance: number;
+  token: string;
+};
+
+type JWTPayload = {
+  email: string;
 };
 
 // Helper function to make relevant calls to simple login authorization
@@ -47,11 +54,23 @@ const verifySimpleLoginCode = async (token: string, redirect_uri: string) => {
 
 @Injectable()
 export class LoginService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private jwtService: JwtService,
+  ) {}
+
+  // Create a JWT token for authentication purposes
+  async generateJWT(payload: JWTPayload) {
+    // We only need the email for the payload
+    const token = await this.jwtService.signAsync(payload);
+    return token;
+  }
 
   /* Hits the database to either create a user or find an existing one based on email */
+  // TODO: Return JWT token as well here
   async loginUser({ name, email }): Promise<any> {
     const user = await this.userModel.findOne({ email: email });
+    const auth_token = await this.generateJWT({ email: email });
     if (!user) {
       const newUser = new this.userModel({ email, name, balance: 0 });
       await newUser.save();
@@ -59,15 +78,21 @@ export class LoginService {
         username: newUser.name,
         email: newUser.email,
         balance: newUser.balance,
+        token: auth_token,
       };
     } else {
       return {
         username: user.name,
         email: user.email,
         balance: user.balance,
+        token: auth_token,
       };
     }
   }
+
+  // TODO: The below functions should call the same JWT generation function
+  // NOTE: Wrap the user's email in the JWT and ensure you only have access to that which is logged in
+  //       I can "worry" about mismatches later
 
   /* Handle token verification with the Google client */
   async loginGoogle(token: any): Promise<any> {
