@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/Dendrobyte/finite_vault/auth"
+	"github.com/go-chi/chi/v5"
 )
 
 type HealthResponse struct {
@@ -27,17 +30,20 @@ func main() {
 	port := 5000
 	fmt.Printf("Server starting on port %d...\n", port)
 
-	// server := &http.Server{
-	// 	Addr:    fmt.Sprintf(":%d", port),
-	// 	Handler: nil, // TODO: httprouter package?
-	// }
+	router := chi.NewRouter()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Permanent redirection, no timeout
-		// http.Redirect(w, r, "/health", http.StatusPermanentRedirect)
+	// Middleware (TODO: Authentication)
+	// router.Use(middleware.##)
+
+	router.Get("/health", health)
+
+	/* Login and Authentication */
+	router.Post("/login/{service}", auth.LoginByService)
+
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		// TODO: Permanent redirect for the base route?
+		http.Redirect(w, r, "/health", http.StatusTemporaryRedirect)
 	})
 
-	http.HandleFunc("/health", health)
-
-	http.ListenAndServe(fmt.Sprintf("localhost:%d", port), nil)
+	http.ListenAndServe(fmt.Sprintf("localhost:%d", port), router)
 }
