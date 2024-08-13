@@ -2,14 +2,21 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 )
+
+type HealthResponse struct {
+	Message string
+}
+
+func health(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"message": "おはようございます!"}`)) // avoiding proper marshaling for simplicity
+}
 
 /*
  * Shit that needs to get done
- * [ ] 0. Choose a framework (e.g. fasthttp)
+ * [x] 0. Choose a framework (let's just use net/http since fasthttp is overkill and not for this)
  * [ ] 1. Set up the OAuth stuff as mirrored in the JS side of things. Auth guards??
  * [ ] 2. Get the login data working, which means pulling data from mongo and sending it back
  * [ ] 3. Incrementing daily value when user logs in based on timestamp (this is beyond the JS stuff)
@@ -17,26 +24,20 @@ import (
  */
 
 func main() {
-	fmt.Println("Server starting on port 5000")
+	port := 5000
+	fmt.Printf("Server starting on port %d...\n", port)
+
+	// server := &http.Server{
+	// 	Addr:    fmt.Sprintf(":%d", port),
+	// 	Handler: nil, // TODO: httprouter package?
+	// }
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		respLine := fmt.Sprintf("%v\n", r)
-		fmt.Printf("Response line: %v\n", respLine)
-		f, err := os.OpenFile("./data/test.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			f, _ = os.Create("./data/test.txt")
-		}
-		defer f.Close()
-
-		done, err := io.WriteString(f, respLine)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("Wrote bytes: %d | Resp Line length: %d", done, len(respLine))
-		f.Sync()
-
-		w.Write([]byte("Data written to file! >:)"))
+		// Permanent redirection, no timeout
+		// http.Redirect(w, r, "/health", http.StatusPermanentRedirect)
 	})
 
-	http.ListenAndServe("localhost:5000", nil)
+	http.HandleFunc("/health", health)
+
+	http.ListenAndServe(fmt.Sprintf("localhost:%d", port), nil)
 }
