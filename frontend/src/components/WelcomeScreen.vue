@@ -18,7 +18,7 @@ const BACKEND_URI: string = import.meta.env.VITE_BACKEND_URI
 
 function triggerLoginFlow(user: User) {
   // TODO: Send along timestamp in the response of a request here, triggers update function in the store
-  userdata.logInUser(user.name, user.balance)
+  userdata.logInUser(user.username, user.balance)
   router.push('home')
 }
 
@@ -51,11 +51,20 @@ function startSimpleLoginSignin() {
 }
 
 async function endSimpleLoginSignin(code: string) {
+  console.log(`Sending req to simple login with code ${code} and redirect uri ${REDIRECT_URI}`)
   await axios
-    .post(`${BACKEND_URI}/login/proton`, {
-      token: code,
-      redirect_uri: REDIRECT_URI
-    })
+    .post(
+      `${BACKEND_URI}/login/proton`,
+      {
+        token: code,
+        redirect_uri: REDIRECT_URI
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    )
     .then((res) => {
       let userInfo: User = res.data.user_info
       triggerLoginFlow(userInfo)
