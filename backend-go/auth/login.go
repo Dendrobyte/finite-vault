@@ -79,6 +79,7 @@ type ProtonData struct {
 
 // Verify user login with Simple Login (Proton) and validate
 func LoginProton(token string, redirect_uri string) UserInfo {
+	fmt.Println(token)
 	simpleLoginData := url.Values{
 		"grant_type":    {"authorization_code"},
 		"code":          {token},
@@ -94,10 +95,13 @@ func LoginProton(token string, redirect_uri string) UserInfo {
 	}
 	defer protonResp.Body.Close()
 
-	// TODO: Check for "error" in the proton data struct, if not empty blah blah
 	data := ProtonData{}
 	json.NewDecoder(protonResp.Body).Decode(&data)
-	fmt.Printf("Data from proton: %v\n", data)
+	if data.Error != "" {
+		// TODO: Handle this properly
+		return UserInfo{Username: "Invalid! Errored out on backend"}
+	}
+	// TODO: Logging... :I
 
 	// TODO: Incorporate JWT stuff for authtoken
 	// TODO: Fetch initial balance from mongo as well, other function
