@@ -51,7 +51,6 @@ function startSimpleLoginSignin() {
 }
 
 async function endSimpleLoginSignin(code: string) {
-  console.log(`Sending req to simple login with code ${code} and redirect uri ${REDIRECT_URI}`)
   await axios
     .post(
       `${BACKEND_URI}/login/proton`,
@@ -66,7 +65,7 @@ async function endSimpleLoginSignin(code: string) {
       }
     )
     .then((res) => {
-      let userInfo: User = res.data.user_info
+      let userInfo: User = res.data
       triggerLoginFlow(userInfo)
       isError.value = false
     })
