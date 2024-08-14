@@ -22,7 +22,7 @@ func health(w http.ResponseWriter, r *http.Request) {
  * Shit that needs to get done
  * [x] 0. Choose a framework (let's just use net/http since fasthttp is overkill and not for this)
  * [x] 1. Set up the OAuth stuff as mirrored in the JS side of things. Auth middleware
- * [ ] 1.5. Make sure the JWT token is sent back, and also stored client-side for future requests the frontend sends
+ * [x] 1.5. Make sure the JWT token is sent back, and also stored client-side for future requests the frontend sends
  * [ ] 2. Get the login data working, which means pulling data from mongo and sending it back with JWT token information
  * [ ] 3. Incrementing daily value when user logs in based on timestamp (this is beyond the JS stuff)
  * [ ] 4. Full transaction support via mongo, etc. (the actual meaty part, not sure if it'll take longer than auth)
@@ -30,7 +30,7 @@ func health(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	port := 5000
-	fmt.Printf("Server starting on port %d...\n", port)
+	fmt.Printf("-+- Server starting on port %d... -+-\n", port)
 
 	router := chi.NewRouter()
 
@@ -54,5 +54,6 @@ func main() {
 		http.Redirect(w, r, "/health", http.StatusTemporaryRedirect)
 	})
 
+	fmt.Println("-+- Server started -+-")
 	http.ListenAndServe(fmt.Sprintf("localhost:%d", port), router)
 }

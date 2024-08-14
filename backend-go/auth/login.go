@@ -2,12 +2,14 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 )
 
@@ -15,6 +17,7 @@ import (
 var (
 	SIMPLE_LOGIN_CLIENT_ID     string = ""
 	SIMPLE_LOGIN_CLIENT_SECRET string = ""
+	JWT_KEY                    []byte = []byte{}
 )
 
 func init() {
@@ -27,6 +30,7 @@ func init() {
 
 	SIMPLE_LOGIN_CLIENT_ID = os.Getenv("SIMPLE_LOGIN_CLIENT_ID")
 	SIMPLE_LOGIN_CLIENT_SECRET = os.Getenv("SIMPLE_LOGIN_CLIENT_SECRET")
+	JWT_KEY = []byte(os.Getenv("JWT_KEY"))
 
 	fmt.Println("-+- Auth module finished loading -+-")
 }
@@ -46,7 +50,16 @@ func LoginByService(w http.ResponseWriter, r *http.Request) {
 		token := r.FormValue("token")
 		redirect_uri := r.FormValue("redirect_uri")
 		userLoginInfo := LoginProton(token, redirect_uri)
+
+		// Write encoded JSON to the w object. Once google is implemented, this can be moved outside the if/else blocks
 		json.NewEncoder(w).Encode(userLoginInfo)
+	} else if service == "test" { // TODO: For obvious reasons, get rid of this
+		jwtString, _ := createJWT("mark@mark.mark")
+		fmt.Printf("Your signed key is %s\n", jwtString)
+		valid, email, err := VerifyJWT(jwtString)
+		fmt.Printf("Validity: %v | Email: %s | Error: %v\n", valid, email, err)
+		testInfo := UserInfo{email, jwtString, "Mark", 0}
+		json.NewEncoder(w).Encode(testInfo)
 	} else {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write([]byte("That service is not supported"))
@@ -54,9 +67,9 @@ func LoginByService(w http.ResponseWriter, r *http.Request) {
 }
 
 type UserInfo struct {
+	Email     string  `json:"email"`
 	AuthToken string  `json:"auth_token"`
 	Username  string  `json:"username"`
-	Email     string  `json:"email"`
 	Balance   float32 `json:"balance"`
 }
 
@@ -67,6 +80,54 @@ type JWTPayload struct {
 	Email string
 }
 
+// Locally create a JWT with the email encoded in the token
+// TODO: Token expiry? Include that in claims and verify timestamp later
+func createJWT(email string) (s string, err error) {
+	var t *jwt.Token = jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"email": email,
+			"exp":   "2h",
+		})
+	s, err = t.SignedString(JWT_KEY)
+	if err != nil {
+		fmt.Printf("JWT creation encountered an issue: %v\n", err)
+		return "", errors.New("could not properly sign the created JWT with a key")
+	}
+	return
+}
+
+// Given a token, verify its validity
+// If valid, it will return true and the user's email as a string
+// If not valid, it will return false
+// Error will only not be nil if something goes wrong with processing, and will default to false
+func VerifyJWT(tokenString string) (valid bool, email string, err error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return JWT_KEY, nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	// TODO: Validate the "exp" claim to make sure token is not expired
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		valid = true
+		if e, ok_string := claims["email"].(string); !ok_string {
+			err = errors.New("the email in the token is not valid")
+		} else {
+			email = e
+			valid = true
+		}
+	}
+
+	return
+}
+
+// The data received from SimpleLogin that we care about unmarshaling
 type ProtonData struct {
 	Token    string `json:"access_token"`
 	Expiry   int32  `json:"expires_in"`
@@ -103,7 +164,10 @@ func LoginProton(token string, redirect_uri string) UserInfo {
 	}
 	// TODO: Logging... :I
 
-	// TODO: Incorporate JWT stuff for authtoken
 	// TODO: Fetch initial balance from mongo as well, other function
-	return UserInfo{data.Token, data.UserData.Name, data.UserData.Email, 0}
+	jwt, err := createJWT(data.UserData.Email)
+	if err != nil {
+		return UserInfo{} // TODO: Properly bubble up errors here
+	}
+	return UserInfo{data.UserData.Email, jwt, data.UserData.Name, 0}
 }
