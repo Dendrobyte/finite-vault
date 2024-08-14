@@ -20,7 +20,7 @@ export const useUserdataStore = defineStore('userdata', () => {
   const getAuthToken = computed(() => authToken.value);
 
   // Functions become actions
-  function incrementForDay() {
+  function incrementForDay() { // TODO: I don't need this function here
     balance.value += dailyNumber
   }
 
@@ -31,6 +31,7 @@ export const useUserdataStore = defineStore('userdata', () => {
 
   // Responsible for updating the state and logging in the user
   // We know at this point that OAuth login has been validated
+  // TODO: (next step) -- hold on to auth token, will send on subsequent requests
   function logInUser(inputUsername: string, givenBalance: number) {
     username.value = inputUsername
     balance.value = givenBalance

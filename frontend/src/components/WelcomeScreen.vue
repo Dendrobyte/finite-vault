@@ -75,6 +75,14 @@ async function endSimpleLoginSignin(code: string) {
     })
 }
 
+// TODO: Get rid of this
+async function triggerTest() {
+  await axios.post(`${BACKEND_URI}/login/test`).then(res => {
+    let userInfo: User = res.data
+    console.log(userInfo);
+  })
+}
+
 onMounted(() => {
   // SimpleLogin redirect uri set to the same page, so check for a code query
   // TODO: If there's time, make the thing a popup window and make a "mid" component to handle the redirection
@@ -97,6 +105,9 @@ onMounted(() => {
     <button @click="startSimpleLoginSignin" class=".login-button">
       <!-- TODO: I would like to see a component here, perhaps the same one for redirection, where it informs someone about the email "clause" of this app. -->
       Sign in with Proton / Simple Login
+    </button>
+    <button @click="triggerTest" class=".login-button">
+      Test login
     </button>
   </div>
 </template>

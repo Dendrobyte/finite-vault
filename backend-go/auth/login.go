@@ -86,7 +86,7 @@ func createJWT(email string) (s string, err error) {
 	var t *jwt.Token = jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"email": email,
-			"exp":   "2h",
+			"exp":   "2h", // TODO: Make this current time + 2h or something configured as a constant
 		})
 	s, err = t.SignedString(JWT_KEY)
 	if err != nil {
