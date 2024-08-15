@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/Dendrobyte/finite_vault/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
@@ -21,11 +22,8 @@ var (
 )
 
 func init() {
-	path, _ := os.Getwd() // Since it's not in the same place as the executable, get path to working directory
-	fmt.Println("The dir: ", path)
-	if err := godotenv.Load(path + "/auth/.env"); err != nil {
+	if err := godotenv.Load(); err != nil {
 		fmt.Println(err)
-
 	}
 
 	SIMPLE_LOGIN_CLIENT_ID = os.Getenv("SIMPLE_LOGIN_CLIENT_ID")
@@ -54,11 +52,14 @@ func LoginByService(w http.ResponseWriter, r *http.Request) {
 		// Write encoded JSON to the w object. Once google is implemented, this can be moved outside the if/else blocks
 		json.NewEncoder(w).Encode(userLoginInfo)
 	} else if service == "test" { // TODO: For obvious reasons, get rid of this
-		jwtString, _ := createJWT("mark@mark.mark")
+		testEmail := "mark@mark.mark"
+		jwtString, _ := createJWT(testEmail)
 		fmt.Printf("Your signed key is %s\n", jwtString)
 		valid, email, err := VerifyJWT(jwtString)
 		fmt.Printf("Validity: %v | Email: %s | Error: %v\n", valid, email, err)
 		testInfo := UserInfo{email, jwtString, "Mark", 0}
+		user := db.GetUser(testEmail, "Merk")
+		fmt.Printf("User info: %v\n", user)
 		json.NewEncoder(w).Encode(testInfo)
 	} else {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -66,6 +67,7 @@ func LoginByService(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// NOTE: Confusing name with the schema imo
 type UserInfo struct {
 	Email     string  `json:"email"`
 	AuthToken string  `json:"auth_token"`
@@ -165,6 +167,7 @@ func LoginProton(token string, redirect_uri string) UserInfo {
 	// TODO: Logging... :I
 
 	// TODO: Fetch initial balance from mongo as well, other function
+	//		 This generally needs to check if the user exists too lol, call GetUser here
 	jwt, err := createJWT(data.UserData.Email)
 	if err != nil {
 		return UserInfo{} // TODO: Properly bubble up errors here

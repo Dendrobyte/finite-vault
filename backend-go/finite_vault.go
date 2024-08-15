@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Dendrobyte/finite_vault/auth"
+	"github.com/Dendrobyte/finite_vault/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
@@ -31,6 +32,8 @@ func health(w http.ResponseWriter, r *http.Request) {
 func main() {
 	port := 5000
 	fmt.Printf("-+- Server starting on port %d... -+-\n", port)
+
+	db.InitMongoDB()
 
 	router := chi.NewRouter()
 
