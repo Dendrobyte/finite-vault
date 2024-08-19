@@ -49,19 +49,9 @@ func LoginByService(w http.ResponseWriter, r *http.Request) {
 		token := r.FormValue("token")
 		redirect_uri := r.FormValue("redirect_uri")
 		userLoginInfo := LoginProton(token, redirect_uri)
-		log.Printf("Gottem! %+v\n", userLoginInfo)
+
 		// Write encoded JSON to the w object. Once google is implemented, this can be moved outside the if/else blocks
 		json.NewEncoder(w).Encode(userLoginInfo)
-	} else if service == "test" { // TODO: For obvious reasons, get rid of this
-		testEmail := "mark@mark.mark"
-		jwtString, _ := createJWT(testEmail)
-		fmt.Printf("Your signed key is %s\n", jwtString)
-		valid, email, err := VerifyJWT(jwtString)
-		fmt.Printf("Validity: %v | Email: %s | Error: %v\n", valid, email, err)
-		testInfo := UserInfo{email, jwtString, "Mark", 0}
-		user := db.GetUser(testEmail, "Merk")
-		fmt.Printf("User info: %v\n", user)
-		json.NewEncoder(w).Encode(testInfo)
 	} else {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write([]byte("That service is not supported"))
@@ -173,6 +163,6 @@ func LoginProton(token string, redirect_uri string) UserInfo {
 		return UserInfo{} // TODO: Properly bubble up errors here
 	}
 
-	log.Printf("Logged in user %v (name: %v).", data.UserData.Email, data.UserData.Name)
+	log.Printf("Logged in user %v (name: %v)", data.UserData.Email, data.UserData.Name)
 	return UserInfo{userData.Email, jwt, userData.Name, userData.Balance}
 }
