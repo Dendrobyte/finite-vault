@@ -40,6 +40,7 @@ func InitMongoDB() {
 }
 
 // Given an email, retrieves a user from the database
+// Name is not used for database calls, but for creation in case none provided
 func GetUser(email string, name string) (user UserData) {
 	userColl := mongoClient.Database(database).Collection("users")
 

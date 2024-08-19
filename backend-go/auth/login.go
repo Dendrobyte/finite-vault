@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -48,7 +49,7 @@ func LoginByService(w http.ResponseWriter, r *http.Request) {
 		token := r.FormValue("token")
 		redirect_uri := r.FormValue("redirect_uri")
 		userLoginInfo := LoginProton(token, redirect_uri)
-
+		log.Printf("Gottem! %+v\n", userLoginInfo)
 		// Write encoded JSON to the w object. Once google is implemented, this can be moved outside the if/else blocks
 		json.NewEncoder(w).Encode(userLoginInfo)
 	} else if service == "test" { // TODO: For obvious reasons, get rid of this
@@ -142,7 +143,7 @@ type ProtonData struct {
 
 // Verify user login with Simple Login (Proton) and validate
 func LoginProton(token string, redirect_uri string) UserInfo {
-	fmt.Println(token)
+	log.Printf("Logging in user via proton with token %v\n", token)
 	simpleLoginData := url.Values{
 		"grant_type":    {"authorization_code"},
 		"code":          {token},
@@ -164,13 +165,14 @@ func LoginProton(token string, redirect_uri string) UserInfo {
 		// TODO: Handle this properly
 		return UserInfo{Username: "Invalid! Errored out on backend"}
 	}
-	// TODO: Logging... :I
 
 	// TODO: Fetch initial balance from mongo as well, other function
-	//		 This generally needs to check if the user exists too lol, call GetUser here
+	userData := db.GetUser(data.UserData.Email, data.UserData.Name)
 	jwt, err := createJWT(data.UserData.Email)
 	if err != nil {
 		return UserInfo{} // TODO: Properly bubble up errors here
 	}
-	return UserInfo{data.UserData.Email, jwt, data.UserData.Name, 0}
+
+	log.Printf("Logged in user %v (name: %v).", data.UserData.Email, data.UserData.Name)
+	return UserInfo{userData.Email, jwt, userData.Name, userData.Balance}
 }
