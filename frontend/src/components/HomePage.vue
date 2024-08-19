@@ -30,13 +30,13 @@ onMounted(() => {
 <template>
   <!-- START OF DEVELOPER BUTTONS -->
 
+  <button @click="userdata.incrementForDay()">Increment Bal by {{ userdata.dailyNumber }}</button>
+
   <!-- END OF DEVELOPER BUTTONS -->
 
   <p>Welcome to the home page, {{ userdata.username }}</p>
   <p>Your balance is ${{ userdata.balance }}</p>
-
-  <button @click="userdata.incrementForDay()">Increment Bal by {{ userdata.dailyNumber }}</button
-  ><br />
+  <br />
 
   <label for="expenseAmount">New Expense Cost: </label>
   <input name="expenseAmount" placeholder="0.00" v-model="expenseAmount" /><br />

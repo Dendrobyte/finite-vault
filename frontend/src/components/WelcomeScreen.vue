@@ -18,8 +18,10 @@ const BACKEND_URI: string = import.meta.env.VITE_BACKEND_URI
 
 function triggerLoginFlow(user: User) {
   // TODO: Send along timestamp in the response of a request here, triggers update function in the store
-  userdata.logInUser(user.username, user.balance)
+  // TODO: Start a loading icon here or something until we push them to 'home'
+  userdata.logInUser(user.username, user.balance, user.auth_token)
   router.push('home')
+  console.log("Login success, here's userdata: ", userdata)
 }
 
 /* OAuth login functions */
@@ -77,9 +79,9 @@ async function endSimpleLoginSignin(code: string) {
 
 // TODO: Get rid of this
 async function triggerTest() {
-  await axios.post(`${BACKEND_URI}/login/test`).then(res => {
+  await axios.post(`${BACKEND_URI}/login/test`).then((res) => {
     let userInfo: User = res.data
-    console.log(userInfo);
+    console.log(userInfo)
   })
 }
 
@@ -90,8 +92,21 @@ onMounted(() => {
     endSimpleLoginSignin(String(route.query.code))
   }
 
-  // TODO: Check for a token in the local storage. If present, verify on backend and redirect.
-  //       Otherwise, show an error message saying that the found token is expired.
+  // Check if user is logged in
+  console.log("Page loaded! Here's userdata: ", userdata)
+  if (userdata.isLoggedIn == true) {
+    let token: string = userdata.getAuthToken
+    // TODO: Hit backend to check validity of token
+    let isValid = token.length > 0
+    if (isValid == true) {
+      router.push('home')
+    } else {
+      errorMessage.value = 'Token is not valid, continuing to sign-in page.'
+      // TODO: Do I bother with this? Or just redirect if expired, user friendly thing if anything
+    }
+  }
+
+  // Else, load as normal
 })
 </script>
 
@@ -106,9 +121,7 @@ onMounted(() => {
       <!-- TODO: I would like to see a component here, perhaps the same one for redirection, where it informs someone about the email "clause" of this app. -->
       Sign in with Proton / Simple Login
     </button>
-    <button @click="triggerTest" class=".login-button">
-      Test login
-    </button>
+    <button @click="triggerTest" class=".login-button">Test login</button>
   </div>
 </template>
 
