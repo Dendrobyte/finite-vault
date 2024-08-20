@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { type User } from '../types/User'
 
 export const useUserdataStore = defineStore('userdata', () => {
   // Establish state variables
@@ -33,12 +34,22 @@ export const useUserdataStore = defineStore('userdata', () => {
   // Responsible for updating the state and logging in the user
   // We know at this point that OAuth login has been validated
   // TODO: (next step) -- hold on to auth token, will send on subsequent requests
-  function logInUser(inputUsername: string, inputBalance: number, inputAuthToken: string) {
-    username.value = inputUsername
-    balance.value = inputBalance
-    authToken.value = inputAuthToken
+  function logInUser(user: User) {
+    username.value = user.username
+    balance.value = user.balance
+    authToken.value = user.auth_token
     loggedIn.value = true
     return true
+  }
+
+  // Check to see if there is a JWT in storage, and if so load it in and "log in" the user
+  // The isLoggedIn field will be checked later
+  function loadUserFromLocalStorage() {
+    // NTS: Alternatively: https://github.com/prazdevs/pinia-plugin-persistedstate
+    const localUserData: User = JSON.parse(localStorage.getItem('infgame_userdata') || '{}')
+    if (localUserData.auth_token !== undefined) {
+      logInUser(localUserData);
+    }
   }
 
   return {
@@ -52,5 +63,6 @@ export const useUserdataStore = defineStore('userdata', () => {
     fileNewExpense,
     getExpenses,
     isLoggedIn,
+    loadUserFromLocalStorage,
   }
 })

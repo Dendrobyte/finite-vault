@@ -17,11 +17,16 @@ const REDIRECT_URI: string = import.meta.env.VITE_ROOT_URI
 const BACKEND_URI: string = import.meta.env.VITE_BACKEND_URI
 
 function triggerLoginFlow(user: User) {
+  // Make sure it was a successful login
   // TODO: Send along timestamp in the response of a request here, triggers update function in the store
   // TODO: Start a loading icon here or something until we push them to 'home'
-  userdata.logInUser(user.username, user.balance, user.auth_token)
-  router.push('home')
-  console.log("Login success, here's userdata: ", userdata)
+  let loginResult: boolean = userdata.logInUser(user)
+  if (loginResult) {
+    localStorage.setItem('infgame_userdata', JSON.stringify(user))
+    router.push('home')
+    console.log("Login success, here's userdata: ", userdata)
+  }
+  return loginResult
 }
 
 /* OAuth login functions */
@@ -94,6 +99,11 @@ onMounted(() => {
 
   // Check if user is logged in
   console.log("Page loaded! Here's userdata: ", userdata)
+
+  // On the state, check if we have a token in local storage
+  userdata.loadUserFromLocalStorage()
+
+  // If they are logged in, go ahead and get that token, validate, etc.
   if (userdata.isLoggedIn == true) {
     let token: string = userdata.getAuthToken
     // TODO: Hit backend to check validity of token
@@ -102,7 +112,8 @@ onMounted(() => {
       router.push('home')
     } else {
       errorMessage.value = 'Token is not valid, continuing to sign-in page.'
-      // TODO: Do I bother with this? Or just redirect if expired, user friendly thing if anything
+      localStorage.clear() // Clear everything if token invalidated
+      // TODO: Redirect if expired, user friendly thing if anything
     }
   }
 
