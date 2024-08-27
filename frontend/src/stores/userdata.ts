@@ -5,6 +5,7 @@ import { type User } from '../types/User'
 export const useUserdataStore = defineStore('userdata', () => {
   // Establish state variables
   const username = ref('')
+  const email = ref('')
   const balance = ref(0.0)
   const dailyNumber = 4
   const expenses = ref([{ amount: 4, description: 'Nothing' }])
@@ -36,6 +37,7 @@ export const useUserdataStore = defineStore('userdata', () => {
   // TODO: (next step) -- hold on to auth token, will send on subsequent requests
   function logInUser(user: User) {
     username.value = user.username
+    email.value = user.email
     balance.value = user.balance
     authToken.value = user.auth_token
     loggedIn.value = true
@@ -54,6 +56,7 @@ export const useUserdataStore = defineStore('userdata', () => {
 
   return {
     username,
+    email,
     balance,
     dailyNumber,
     getBalance,

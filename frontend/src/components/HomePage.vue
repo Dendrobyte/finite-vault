@@ -17,6 +17,9 @@ function fileExpense() {
 }
 
 onMounted(() => {
+  // TODO: Redirection is OK bc we'll always redirect on every page refresh... Do I need this everywhere?
+  //       Worth thinking this through in terms of how to handle each page load. Then again, it's a SPA so this should be in the parent
+  // TODO: Move this to the parent / move the login update to the parent
   if (!userdata.isLoggedIn) {
     console.log('No login session present!')
     router.push('/')

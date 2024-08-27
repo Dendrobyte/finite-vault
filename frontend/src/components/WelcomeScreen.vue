@@ -4,7 +4,7 @@ import { useUserdataStore } from '@/stores/userdata'
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { type User } from '../types/User'
+import { type User, type ValidatedUser } from '../types/User'
 
 const userdata = useUserdataStore()
 const route = useRoute()
@@ -24,7 +24,6 @@ function triggerLoginFlow(user: User) {
   if (loginResult) {
     localStorage.setItem('infgame_userdata', JSON.stringify(user))
     router.push('home')
-    console.log("Login success, here's userdata: ", userdata)
   }
   return loginResult
 }
@@ -82,23 +81,46 @@ async function endSimpleLoginSignin(code: string) {
     })
 }
 
-// TODO: Get rid of this
-async function triggerTest() {
-  await axios.post(`${BACKEND_URI}/login/test`).then((res) => {
-    let userInfo: User = res.data
-    console.log(userInfo)
-  })
+async function validateToken(token: string): Promise<[valid: boolean, email: string]> {
+  let isValid: boolean = false
+  let email: string = ''
+  await axios
+    .post(
+      `${BACKEND_URI}/validateToken`,
+      {
+        auth_token: token
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    )
+    .then((res) => {
+      if (res.status == 422 || res.status == 401) {
+        // TODO: Flesh out the logic here based on flawed backend processing
+        console.log('Backend was hit but returned a 400 error')
+      }
+      if (res.status != 200) {
+        return
+      }
+      let validated: ValidatedUser = res.data
+      isValid = validated.valid
+      email = validated.email
+    })
+    .catch((err) => {
+      isError.value = true
+      errorMessage.value = 'Token validation failed: ' + err
+    })
+  return [isValid, email]
 }
 
-onMounted(() => {
+onMounted(async () => {
   // SimpleLogin redirect uri set to the same page, so check for a code query
   // TODO: If there's time, make the thing a popup window and make a "mid" component to handle the redirection
   if (route.query.code) {
     endSimpleLoginSignin(String(route.query.code))
   }
-
-  // Check if user is logged in
-  console.log("Page loaded! Here's userdata: ", userdata)
 
   // On the state, check if we have a token in local storage
   userdata.loadUserFromLocalStorage()
@@ -107,9 +129,14 @@ onMounted(() => {
   if (userdata.isLoggedIn == true) {
     let token: string = userdata.getAuthToken
     // TODO: Hit backend to check validity of token
-    let isValid = token.length > 0
+    let [isValid, userEmail] = await validateToken(token)
     if (isValid == true) {
-      router.push('home')
+      if (userdata.email == userEmail) {
+        router.push('home')
+      } else {
+        errorMessage.value = 'Token does not match correct email on server. Please log in again.'
+        localStorage.clear()
+      }
     } else {
       errorMessage.value = 'Token is not valid, continuing to sign-in page.'
       localStorage.clear() // Clear everything if token invalidated
@@ -132,7 +159,6 @@ onMounted(() => {
       <!-- TODO: I would like to see a component here, perhaps the same one for redirection, where it informs someone about the email "clause" of this app. -->
       Sign in with Proton / Simple Login
     </button>
-    <button @click="triggerTest" class=".login-button">Test login</button>
   </div>
 </template>
 
