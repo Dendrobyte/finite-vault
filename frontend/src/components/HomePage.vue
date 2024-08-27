@@ -17,6 +17,9 @@ function fileExpense() {
 }
 
 onMounted(() => {
+  // TODO: Redirection is OK bc we'll always redirect on every page refresh... Do I need this everywhere?
+  //       Worth thinking this through in terms of how to handle each page load. Then again, it's a SPA so this should be in the parent
+  // TODO: Move this to the parent / move the login update to the parent
   if (!userdata.isLoggedIn) {
     console.log('No login session present!')
     router.push('/')
@@ -30,13 +33,13 @@ onMounted(() => {
 <template>
   <!-- START OF DEVELOPER BUTTONS -->
 
+  <button @click="userdata.incrementForDay()">Increment Bal by {{ userdata.dailyNumber }}</button>
+
   <!-- END OF DEVELOPER BUTTONS -->
 
   <p>Welcome to the home page, {{ userdata.username }}</p>
   <p>Your balance is ${{ userdata.balance }}</p>
-
-  <button @click="userdata.incrementForDay()">Increment Bal by {{ userdata.dailyNumber }}</button
-  ><br />
+  <br />
 
   <label for="expenseAmount">New Expense Cost: </label>
   <input name="expenseAmount" placeholder="0.00" v-model="expenseAmount" /><br />

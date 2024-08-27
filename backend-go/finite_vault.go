@@ -52,6 +52,10 @@ func main() {
 	/* Login and Authentication */
 	router.Post("/login/{service}", auth.LoginByService)
 
+	router.Post("/validateToken", auth.ValidateJWT) // File under "/auth" if we make more auth related functions, e.g. wrapper for future access
+
+	router.Get("/generateToken", auth.TestCreateJWT)
+
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Permanent redirect for the base route?
 		http.Redirect(w, r, "/health", http.StatusTemporaryRedirect)

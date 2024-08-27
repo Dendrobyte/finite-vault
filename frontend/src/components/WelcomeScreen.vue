@@ -4,7 +4,7 @@ import { useUserdataStore } from '@/stores/userdata'
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { type User } from '../types/User'
+import { type User, type ValidatedUser } from '../types/User'
 
 const userdata = useUserdataStore()
 const route = useRoute()
@@ -17,9 +17,15 @@ const REDIRECT_URI: string = import.meta.env.VITE_ROOT_URI
 const BACKEND_URI: string = import.meta.env.VITE_BACKEND_URI
 
 function triggerLoginFlow(user: User) {
+  // Make sure it was a successful login
   // TODO: Send along timestamp in the response of a request here, triggers update function in the store
-  userdata.logInUser(user.username, user.balance)
-  router.push('home')
+  // TODO: Start a loading icon here or something until we push them to 'home'
+  let loginResult: boolean = userdata.logInUser(user)
+  if (loginResult) {
+    localStorage.setItem('infgame_userdata', JSON.stringify(user))
+    router.push('home')
+  }
+  return loginResult
 }
 
 /* OAuth login functions */
@@ -75,23 +81,70 @@ async function endSimpleLoginSignin(code: string) {
     })
 }
 
-// TODO: Get rid of this
-async function triggerTest() {
-  await axios.post(`${BACKEND_URI}/login/test`).then(res => {
-    let userInfo: User = res.data
-    console.log(userInfo);
-  })
+async function validateToken(token: string): Promise<[valid: boolean, email: string]> {
+  let isValid: boolean = false
+  let email: string = ''
+  await axios
+    .post(
+      `${BACKEND_URI}/validateToken`,
+      {
+        auth_token: token
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    )
+    .then((res) => {
+      if (res.status == 422 || res.status == 401) {
+        // TODO: Flesh out the logic here based on flawed backend processing
+        console.log('Backend was hit but returned a 400 error')
+      }
+      if (res.status != 200) {
+        return
+      }
+      let validated: ValidatedUser = res.data
+      isValid = validated.valid
+      email = validated.email
+    })
+    .catch((err) => {
+      isError.value = true
+      errorMessage.value = 'Token validation failed: ' + err
+    })
+  return [isValid, email]
 }
 
-onMounted(() => {
+onMounted(async () => {
   // SimpleLogin redirect uri set to the same page, so check for a code query
   // TODO: If there's time, make the thing a popup window and make a "mid" component to handle the redirection
   if (route.query.code) {
     endSimpleLoginSignin(String(route.query.code))
   }
 
-  // TODO: Check for a token in the local storage. If present, verify on backend and redirect.
-  //       Otherwise, show an error message saying that the found token is expired.
+  // On the state, check if we have a token in local storage
+  userdata.loadUserFromLocalStorage()
+
+  // If they are logged in, go ahead and get that token, validate, etc.
+  if (userdata.isLoggedIn == true) {
+    let token: string = userdata.getAuthToken
+    // TODO: Hit backend to check validity of token
+    let [isValid, userEmail] = await validateToken(token)
+    if (isValid == true) {
+      if (userdata.email == userEmail) {
+        router.push('home')
+      } else {
+        errorMessage.value = 'Token does not match correct email on server. Please log in again.'
+        localStorage.clear()
+      }
+    } else {
+      errorMessage.value = 'Token is not valid, continuing to sign-in page.'
+      localStorage.clear() // Clear everything if token invalidated
+      // TODO: Redirect if expired, user friendly thing if anything
+    }
+  }
+
+  // Else, load as normal
 })
 </script>
 
@@ -105,9 +158,6 @@ onMounted(() => {
     <button @click="startSimpleLoginSignin" class=".login-button">
       <!-- TODO: I would like to see a component here, perhaps the same one for redirection, where it informs someone about the email "clause" of this app. -->
       Sign in with Proton / Simple Login
-    </button>
-    <button @click="triggerTest" class=".login-button">
-      Test login
     </button>
   </div>
 </template>
