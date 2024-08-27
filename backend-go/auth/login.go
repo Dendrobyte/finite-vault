@@ -139,7 +139,6 @@ func LoginProton(token string, redirect_uri string) UserInfo {
 	return UserInfo{userData.Email, jwt, userData.Name, userData.Balance}
 }
 
-// TODO: Maybe it's better to encode this another way, or with a different name?
 type TokenValidationResponse struct {
 	Valid bool   `json:"valid"`
 	Email string `json:"email"`

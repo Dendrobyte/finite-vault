@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import { type User } from '../types/User'
 
 export const useUserdataStore = defineStore('userdata', () => {
+  const localStorageKey = 'infgame_userdata'
+
   // Establish state variables
   const username = ref('')
   const email = ref('')
@@ -48,7 +50,7 @@ export const useUserdataStore = defineStore('userdata', () => {
   // The isLoggedIn field will be checked later
   function loadUserFromLocalStorage() {
     // NTS: Alternatively: https://github.com/prazdevs/pinia-plugin-persistedstate
-    const localUserData: User = JSON.parse(localStorage.getItem('infgame_userdata') || '{}')
+    const localUserData: User = JSON.parse(localStorage.getItem(localStorageKey) || '{}')
     if (localUserData.auth_token !== undefined) {
       logInUser(localUserData);
     }
