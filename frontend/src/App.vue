@@ -25,17 +25,16 @@ useUserdataStore() // Initialize store (maybe not needed since called on welcome
 <style>
 /* TODO: Figure out how to make this max-mobile size within the browser */
 .main-container {
-  width: 50%;
+  width: 60%;
   margin: auto;
-  margin-top: 10vh;
-  background-color: var(--background-indigo);
-  padding: 20% 1vh;
+  margin-top: 16vh;
   text-align: center;
+  /* TODO: Remove border. Make full height and scrollable. */
   height: 80em;
-  border: 1px solid black;
-  box-shadow: black -8px 8px;
+  border: 6px solid black;
 }
 
+/* TODO: Oh yea, I should make this at some point */
 .footer {
   background-color: green;
 }

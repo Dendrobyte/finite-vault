@@ -150,15 +150,16 @@ onMounted(async () => {
 
 <template>
   <div class="greetings">
-    <h1 class="welcome-text">Welcome to Finite Vault!</h1>
+    <h1 class="welcome-text">Finite Vault</h1>
     <img src="../assets/img/chest_kenney.png" class="logo" />
-    <label for="username" class="username-box">Select a login method below</label>
     <p v-if="isError" class="error-text">{{ errorMessage }}</p>
-    <GoogleLogin :callback="oauthCallbackGoogle" class="google-button" />
-    <button @click="startSimpleLoginSignin" class=".login-button">
-      <!-- TODO: I would like to see a component here, perhaps the same one for redirection, where it informs someone about the email "clause" of this app. -->
-      Sign in with Proton / Simple Login
-    </button>
+    <div class="login-buttons">
+      <button @click="startSimpleLoginSignin" class="login-button">Sign in with Proton</button>
+      <!-- <span class="login-button"></span> -->
+      <GoogleLogin :callback="oauthCallbackGoogle" class="google-button-wrapper">
+        <button class="login-button">Sign in with Google</button>
+      </GoogleLogin>
+    </div>
   </div>
 </template>
 
@@ -166,8 +167,10 @@ onMounted(async () => {
 @import '../assets/base.css';
 
 .welcome-text {
-  color: var(--header-gold);
+  color: var(--core-cream);
+  font-weight: 600;
   padding: 20px;
+  font-size: 6em;
 }
 
 .logo {
@@ -176,22 +179,36 @@ onMounted(async () => {
   display: block;
 }
 
-.google-button {
+.login-buttons {
   display: block;
-  padding: 1em;
-  margin: 1em;
 }
 
 .login-button {
-  background-color: white;
+  background-color: var(--core-hunter-green);
+  color: var(--core-cream);
+  width: 60%;
   border: none;
-  color: black;
   padding: 1em;
-  margin: 2em;
+  margin: 0.5em auto;
+  font-weight: 800;
   text-align: center;
   text-decoration: none;
+  font-size: 2em;
   display: block;
-  font-size: 16px;
+}
+
+.login-button:hover {
+  cursor: pointer;
+}
+
+/* Use relative position to avoid influencing document flow */
+.login-button:active {
+  position: relative;
+  top: 0.2em;
+}
+
+.google-button-wrapper {
+  width: 100%;
 }
 
 .error-text {

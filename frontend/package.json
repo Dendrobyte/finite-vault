@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "axios": "^1.7.2",
+    "finite-vault": "file:",
     "oidc-client-ts": "^3.0.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
