@@ -15,13 +15,13 @@ go install github.com/air-verse/air@latest
 If you are on Mac or Linux, in the [air configuration file](./.air.toml), make sure the `bin` path is set to
 
 ```bash
-  bin = "tmp\main.exe"
+bin = "tmp\main.exe"
 ```
 
 whereas on Windows you'll need
 
 ```bash
-  bin = "tmp\\main.exe"
+bin = "tmp\\main.exe"
 ```
 
 Until we get Docker set up, that's what will need to be done for now because of the path differences.
