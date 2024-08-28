@@ -7,47 +7,48 @@ import { computed, onMounted, ref } from 'vue'
 // Pull username from state
 const userdata = useUserdataStore()
 
-const expenseAmount = ref(0.01)
+const expenseAmount = ref(0.0)
 const expenseReason = ref('')
+const isValidExpenseAmount = ref(true)
 
-// Modify presentation when getting and parse numeric value when setting
+// Modify presentation when getting, update value number when setting
 const expenseAmountStr = computed({
   get() {
     return `$${expenseAmount.value}`
   },
   set(newVal) {
-    const numericValue = parseExpenseAmount(newVal)
-    if (numericValue !== null) {
-      expenseAmount.value = numericValue
+    console.log('New val: ' + newVal)
+    if (newVal !== undefined) {
+      if (newVal.charAt(0) === '$') {
+        newVal = newVal.slice(1, newVal.length)
+      }
+
+      if (isValidExpenseStr(newVal)) {
+        isValidExpenseAmount.value = true
+        expenseAmount.value = parseFloat(newVal)
+        console.log('Valid number : ' + newVal)
+      } else {
+        isValidExpenseAmount.value = false
+        expenseAmount.value = 0.0
+      }
+    } else {
+      isValidExpenseAmount.value = false
+      expenseAmount.value = 0.0
     }
   }
 })
 
-// Is called when the field updates, modifying the html target directly
-function validateExpenseAmount(event: any) {
-  const value = event.target.value
-
-  const numericValue = parseExpenseAmount(value)
-  if (numericValue !== null) {
-    event.target.value = `$${numericValue}`
-  } else {
-    event.target.value = expenseAmountStr.value
-  }
-}
-
-function parseExpenseAmount(amountStr: string): number | null {
-  // Remove non-numeric characters except the decimal point
-  const cleanStr = amountStr.replace(/[^0-9.]/g, '')
-
-  // Convert to a float
-  const numericValue = parseFloat(cleanStr)
-
-  // Validate the number
-  if (isNaN(numericValue)) {
-    return null
+// Check to see if the expense string input by the user is valid, input stripped of currency symbol
+function isValidExpenseStr(input: any): boolean {
+  // Check to make sure we don't exceed two decimal places
+  if (input.includes('.')) {
+    if (input.split('.')[1].length > 2) {
+      return false
+    }
   }
 
-  return numericValue
+  // And lastly just check that it's a number
+  return !isNaN(input)
 }
 
 function fileExpense() {
@@ -88,9 +89,13 @@ onMounted(() => {
         name="expenseAmount"
         placeholder="$0.00"
         v-model="expenseAmountStr"
-        @input="validateExpenseAmount"
         class="expense-form-amount"
       />
+      <p v-if="!isValidExpenseAmount" class="error-text">
+        {{
+          'Invalid expense amount, please ensure it is all numbers and has no more than two decimal places.'
+        }}
+      </p>
       <input
         name="expenseReason"
         placeholder="Your expense reason here..."
@@ -136,7 +141,6 @@ onMounted(() => {
 }
 
 .new-expense-form {
-  background-color: red;
   display: inline;
 }
 
