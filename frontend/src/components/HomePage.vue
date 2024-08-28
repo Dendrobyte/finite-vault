@@ -36,9 +36,12 @@ onMounted(() => {
   <button @click="userdata.incrementForDay()">Increment Bal by {{ userdata.dailyNumber }}</button>
 
   <!-- END OF DEVELOPER BUTTONS -->
+  <p style="color: white">Settings will go here</p>
 
-  <p>Welcome to the home page, {{ userdata.username }}</p>
-  <p>Your balance is ${{ userdata.balance }}</p>
+  <h1 class="vault-title-text">{{ userdata.username }}'s Vault</h1>
+  <div class="vault-balance">
+    <h2 class="vault-balance-text">${{ userdata.balance }}</h2>
+  </div>
   <br />
 
   <label for="expenseAmount">New Expense Cost: </label>
@@ -55,4 +58,25 @@ onMounted(() => {
   />
 </template>
 
-<style></style>
+<style>
+.vault-title-text {
+  color: var(--core-cream);
+  font-weight: 600;
+  font-size: 5em;
+}
+
+/* TODO: Lazy load this image, or turn to webp */
+.vault-balance {
+  padding: 3em;
+  background-image: url('../assets/img/balance-bg-stroke.webp');
+  background-size: contain;
+  background-position: center, top;
+  background-repeat: no-repeat;
+}
+
+.vault-balance-text {
+  color: var(--core-cream);
+  font-weight: 800;
+  font-size: 6em;
+}
+</style>

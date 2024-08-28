@@ -169,7 +169,7 @@ onMounted(async () => {
 .welcome-text {
   color: var(--core-cream);
   font-weight: 600;
-  padding: 20px;
+  padding: 0.5em;
   font-size: 6em;
 }
 
