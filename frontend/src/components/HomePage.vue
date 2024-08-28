@@ -12,34 +12,54 @@ const expenseReason = ref('')
 const isValidExpenseAmount = ref(true)
 
 // Modify presentation when getting, update value number when setting
-const expenseAmountStr = computed({
-  get() {
-    return `$${expenseAmount.value}`
-  },
-  set(newVal) {
-    console.log('New val: ' + newVal)
-    if (newVal !== undefined) {
-      if (newVal.charAt(0) === '$') {
-        newVal = newVal.slice(1, newVal.length)
-      }
+const expenseAmountStr = ref('')
+// const expenseAmountStr = computed({
+//   get() {
+//     return `$${expenseAmount.value}`
+//   },
+//   set(newVal) {
+//     // When this is set, we just want to show an error if it's not valid
+//     // The value of expenseAmount is sent on form submission, so we don't modify it here
+//     if (newVal !== undefined) {
+//       if (isValidExpenseStr(newVal)) {
+//         isValidExpenseAmount.value = true
+//       } else {
+//         isValidExpenseAmount.value = false
+//       }
+//     }
+//   }
+// })
 
-      if (isValidExpenseStr(newVal)) {
-        isValidExpenseAmount.value = true
-        expenseAmount.value = parseFloat(newVal)
-        console.log('Valid number : ' + newVal)
-      } else {
-        isValidExpenseAmount.value = false
-        expenseAmount.value = 0.0
-      }
-    } else {
-      isValidExpenseAmount.value = false
-      expenseAmount.value = 0.0
-    }
+// Every time we update the input, we need to target the value of the specific html element
+// to modify the data there. The variable in our "state" is updated separately.
+function validateExpenseAmount(event: any) {
+  console.log("Attempting to validate")
+  const value = event.target.value
+  
+  const isValid = isValidExpenseStr(value)
+  console.log("Valid: " + isValid)
+  if (isValid) {
+    event.target.value = `$${expenseAmount.value}`
+    isValidExpenseAmount.value = true
+  } else {
+    event.target.value = ''
+    isValidExpenseAmount.value = false
   }
-})
+}
 
-// Check to see if the expense string input by the user is valid, input stripped of currency symbol
+// Check to see if a string is a valid "expense string"
 function isValidExpenseStr(input: any): boolean {
+  // Check for empty string
+  if (input.length == 0) {
+    expenseAmount.value = 0.0
+    return false
+  }
+
+  // Remove '$' if present
+  if (input.charAt(0) === '$') {
+    input = input.slice(1, input.length)
+  }
+
   // Check to make sure we don't exceed two decimal places
   if (input.includes('.')) {
     if (input.split('.')[1].length > 2) {
@@ -48,7 +68,13 @@ function isValidExpenseStr(input: any): boolean {
   }
 
   // And lastly just check that it's a number
-  return !isNaN(input)
+  if(!isNaN(input)){
+    console.log("Setting expense amount to: ", input)
+    // expenseAmount.value = parseFloat(input)
+    return true
+  } else {
+    return false
+  }
 }
 
 function fileExpense() {
@@ -89,6 +115,7 @@ onMounted(() => {
         name="expenseAmount"
         placeholder="$0.00"
         v-model="expenseAmountStr"
+        @input="validateExpenseAmount"
         class="expense-form-amount"
       />
       <p v-if="!isValidExpenseAmount" class="error-text">
