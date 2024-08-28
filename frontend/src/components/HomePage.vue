@@ -2,7 +2,7 @@
 import ExpenseRow from '@/components/ExpenseRow.vue'
 import router from '@/router'
 import { useUserdataStore } from '@/stores/userdata'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 // Pull username from state
 const userdata = useUserdataStore()
@@ -10,39 +10,23 @@ const userdata = useUserdataStore()
 const expenseAmount = ref(0.0)
 const expenseReason = ref('')
 const isValidExpenseAmount = ref(true)
+const isFormInvalid = ref(true)
 
 // Modify presentation when getting, update value number when setting
 const expenseAmountStr = ref('')
-// const expenseAmountStr = computed({
-//   get() {
-//     return `$${expenseAmount.value}`
-//   },
-//   set(newVal) {
-//     // When this is set, we just want to show an error if it's not valid
-//     // The value of expenseAmount is sent on form submission, so we don't modify it here
-//     if (newVal !== undefined) {
-//       if (isValidExpenseStr(newVal)) {
-//         isValidExpenseAmount.value = true
-//       } else {
-//         isValidExpenseAmount.value = false
-//       }
-//     }
-//   }
-// })
 
 // Every time we update the input, we need to target the value of the specific html element
 // to modify the data there. The variable in our "state" is updated separately.
 function validateExpenseAmount(event: any) {
-  console.log("Attempting to validate")
   const value = event.target.value
-  
+
   const isValid = isValidExpenseStr(value)
-  console.log("Valid: " + isValid)
   if (isValid) {
-    event.target.value = `$${expenseAmount.value}`
+    expenseAmount.value = getExpenseFromExpenseStr(value)
+    expenseAmountStr.value = `$${expenseAmount.value}`
     isValidExpenseAmount.value = true
   } else {
-    event.target.value = ''
+    event.target.value = value.slice(0, value.length - 1)
     isValidExpenseAmount.value = false
   }
 }
@@ -68,19 +52,29 @@ function isValidExpenseStr(input: any): boolean {
   }
 
   // And lastly just check that it's a number
-  if(!isNaN(input)){
-    console.log("Setting expense amount to: ", input)
-    // expenseAmount.value = parseFloat(input)
-    return true
-  } else {
-    return false
-  }
+  return !isNaN(input)
 }
 
-function fileExpense() {
+// Given an already validated string, let's remove the dollar sign and parse it as a float for the expense
+function getExpenseFromExpenseStr(expenseStr: string): number {
+  expenseStr = expenseStr.slice(1, expenseStr.length)
+  if (expenseStr.length === 0) {
+    return 0.0
+  }
+  return parseFloat(expenseStr)
+}
+
+function submitExpense() {
+  // TODO: Don't forget to validate expense reason (and revalidate final amount, THEN show an error)
   userdata.fileNewExpense(expenseAmount.value, expenseReason.value)
   expenseAmount.value = 0.0
+  expenseAmountStr.value = ''
   expenseReason.value = ''
+}
+
+// Simple check to make sure we can submit the form
+function canSubmitForm(): boolean {
+  return isValidExpenseAmount.value && expenseReason.value.length > 0
 }
 
 onMounted(() => {
@@ -104,41 +98,47 @@ onMounted(() => {
 
   <h1 class="vault-title-text">{{ userdata.username }}'s Vault</h1>
   <div class="vault-balance">
-    <h2 class="vault-balance-text">${{ userdata.balance }}</h2>
+    <h2 class="vault-balance-text">${{ userdata.balance.toFixed(2) }}</h2>
   </div>
   <br />
 
-  <div class="new-expense-section">
+  <div class="expense-page-section">
     <h2 class="vault-title-text">New Expense</h2>
-    <form v-on:submit.prevent="fileExpense()" action="" method="post" class="new-expense-form">
+    <form v-on:submit.prevent="submitExpense()" action="" method="post" class="new-expense-form">
       <input
         name="expenseAmount"
         placeholder="$0.00"
-        v-model="expenseAmountStr"
+        :value="expenseAmountStr"
         @input="validateExpenseAmount"
         class="expense-form-amount"
       />
-      <p v-if="!isValidExpenseAmount" class="error-text">
-        {{
-          'Invalid expense amount, please ensure it is all numbers and has no more than two decimal places.'
-        }}
-      </p>
       <input
         name="expenseReason"
         placeholder="Your expense reason here..."
         v-model.trim="expenseReason"
         class="expense-form-reason"
       /><br />
-      <button @click="fileExpense()" class="new-expense-submit">Submit</button>
+      <p v-if="!isFormInvalid" class="error-text">
+        {{ 'Expense amount or reason is invalid.' }}
+      </p>
+      <button
+        class="expense-form-button"
+        :class="[canSubmitForm() ? 'btn-active' : 'btn-inactive']"
+      >
+        Submit
+      </button>
     </form>
   </div>
 
-  <ExpenseRow
-    v-for="(expense, idx) in userdata.getExpenses"
-    :key="idx"
-    :amount="expense.amount"
-    :description="expense.description"
-  />
+  <div class="expense-page-section">
+    <h2 class="vault-title-text" style="font-size: 4em">Past Expenses</h2>
+    <ExpenseRow
+      v-for="(expense, idx) in userdata.getExpenses"
+      :key="idx"
+      :amount="expense.amount"
+      :description="expense.description"
+    />
+  </div>
 </template>
 
 <style>
@@ -163,7 +163,7 @@ onMounted(() => {
   font-size: 6em;
 }
 
-.new-expense-section {
+.expense-page-section {
   display: inline;
 }
 
@@ -180,12 +180,43 @@ onMounted(() => {
 }
 
 .expense-form-amount {
-  width: 16%;
+  width: 24%;
   color: var(--core-ecru);
   background-color: var(--core-field-drab);
 }
 
 .expense-form-reason {
-  width: 62%;
+  width: 60%;
+  color: var(--core-field-drab);
+  background-color: var(--core-ecru);
+}
+
+.expense-form-button {
+  font-size: 2em;
+  margin: 0.8em;
+  padding: 0.5em 1em;
+  border-radius: 0;
+  border: none;
+  font-weight: 600;
+  color: var(--white-soft);
+  background-color: var(--core-ecru);
+}
+
+.expense-form-button:hover {
+  cursor: pointer;
+}
+
+.expense-form-button:active {
+  position: relative;
+  top: 0.1em;
+}
+
+.btn-inactive {
+  opacity: 40%;
+  pointer-events: none;
+}
+
+.btn-active {
+  opacity: 100%;
 }
 </style>
