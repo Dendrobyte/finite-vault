@@ -1,4 +1,6 @@
 *.env
 /tmp
 
+/finite_vault.exe
+
 /.DS_Store
