@@ -29,9 +29,6 @@ useUserdataStore() // Initialize store (maybe not needed since called on welcome
   margin: auto;
   margin-top: 16vh;
   text-align: center;
-  /* TODO: Remove border. Make full height and scrollable. */
-  height: 80em;
-  border: 6px solid black;
 }
 
 /* TODO: Oh yea, I should make this at some point */

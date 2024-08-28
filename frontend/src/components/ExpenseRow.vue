@@ -1,14 +1,30 @@
 <script setup lang="ts">
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   amount: Number,
-  description: String
-  // TODO: Date
+  description: String,
+  date: Number // Unix timestamp, to convert to date object
 })
 
-// TODO: Lowkey everything. Trash icon?
+// Convert timestamp on transaction to date
+// The timestamp should be stored as local timestamp, so no need to convert from a central timezone
+const dateString = computed(() => {
+  if (props.date === undefined) {
+    return 'Date Error'
+  }
+  const newDate = new Date(props.date * 1000)
+  return newDate.toDateString()
+})
+
+// TODO: Trash icon?
 </script>
 
 <template>
+  <div class="past-expense-date-container">
+    <p class="past-expense-date">{{ dateString }}</p>
+  </div>
+
   <div class="past-expenses-row">
     <span class="expense-past expense-past-amount"> ${{ amount?.toFixed(2) }} </span>
     <span class="expense-past expense-past-reason">
@@ -18,6 +34,19 @@ defineProps({
 </template>
 
 <style>
+.past-expense-date-container {
+  display: inline-block;
+  margin: auto;
+}
+
+.past-expense-date {
+  color: var(--core-cream);
+  opacity: 60%;
+  text-align: left;
+  font-weight: 800;
+  font-size: 1.4em;
+}
+
 .past-expenses-row {
   margin: auto;
 }

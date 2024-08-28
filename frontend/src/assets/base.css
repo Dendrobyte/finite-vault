@@ -38,3 +38,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@media (min-width: 960px) {
+  body {
+    width: 960px;
+    margin: auto;
+  }
+}

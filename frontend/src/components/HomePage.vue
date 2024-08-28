@@ -137,6 +137,7 @@ onMounted(() => {
       :key="idx"
       :amount="expense.amount"
       :description="expense.description"
+      :date="1724885210"
     />
   </div>
 </template>
