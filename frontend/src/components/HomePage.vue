@@ -2,13 +2,53 @@
 import ExpenseRow from '@/components/ExpenseRow.vue'
 import router from '@/router'
 import { useUserdataStore } from '@/stores/userdata'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 // Pull username from state
 const userdata = useUserdataStore()
 
-const expenseAmount = ref(0.0)
+const expenseAmount = ref(0.01)
 const expenseReason = ref('')
+
+// Modify presentation when getting and parse numeric value when setting
+const expenseAmountStr = computed({
+  get() {
+    return `$${expenseAmount.value}`
+  },
+  set(newVal) {
+    const numericValue = parseExpenseAmount(newVal)
+    if (numericValue !== null) {
+      expenseAmount.value = numericValue
+    }
+  }
+})
+
+// Is called when the field updates, modifying the html target directly
+function validateExpenseAmount(event: any) {
+  const value = event.target.value
+
+  const numericValue = parseExpenseAmount(value)
+  if (numericValue !== null) {
+    event.target.value = `$${numericValue}`
+  } else {
+    event.target.value = expenseAmountStr.value
+  }
+}
+
+function parseExpenseAmount(amountStr: string): number | null {
+  // Remove non-numeric characters except the decimal point
+  const cleanStr = amountStr.replace(/[^0-9.]/g, '')
+
+  // Convert to a float
+  const numericValue = parseFloat(cleanStr)
+
+  // Validate the number
+  if (isNaN(numericValue)) {
+    return null
+  }
+
+  return numericValue
+}
 
 function fileExpense() {
   userdata.fileNewExpense(expenseAmount.value, expenseReason.value)
@@ -25,9 +65,6 @@ onMounted(() => {
     router.push('/')
   }
 })
-
-/* DEVELOPER BUTTON CALLBACK FUNCTIONS */
-// These are used to "simulate" certain behavior. Should be deleted once everything is confirmed.
 </script>
 
 <template>
@@ -44,11 +81,25 @@ onMounted(() => {
   </div>
   <br />
 
-  <label for="expenseAmount">New Expense Cost: </label>
-  <input name="expenseAmount" placeholder="0.00" v-model="expenseAmount" /><br />
-  <label for="expenseReason">Expense Reason: </label>
-  <input name="expenseAmount" placeholder="Groceries" v-model="expenseReason" /><br />
-  <button @click="fileExpense()">File Expense</button><br />
+  <div class="new-expense-section">
+    <h2 class="vault-title-text">New Expense</h2>
+    <form v-on:submit.prevent="fileExpense()" action="" method="post" class="new-expense-form">
+      <input
+        name="expenseAmount"
+        placeholder="$0.00"
+        v-model="expenseAmountStr"
+        @input="validateExpenseAmount"
+        class="expense-form-amount"
+      />
+      <input
+        name="expenseReason"
+        placeholder="Your expense reason here..."
+        v-model.trim="expenseReason"
+        class="expense-form-reason"
+      /><br />
+      <button @click="fileExpense()" class="new-expense-submit">Submit</button>
+    </form>
+  </div>
 
   <ExpenseRow
     v-for="(expense, idx) in userdata.getExpenses"
@@ -78,5 +129,32 @@ onMounted(() => {
   color: var(--core-cream);
   font-weight: 800;
   font-size: 6em;
+}
+
+.new-expense-section {
+  display: inline;
+}
+
+.new-expense-form {
+  background-color: red;
+  display: inline;
+}
+
+.new-expense-form input {
+  margin: 0.5em;
+  padding: 0.5em;
+  border: none;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.expense-form-amount {
+  width: 16%;
+  color: var(--core-ecru);
+  background-color: var(--core-field-drab);
+}
+
+.expense-form-reason {
+  width: 62%;
 }
 </style>
