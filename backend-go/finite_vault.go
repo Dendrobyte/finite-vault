@@ -39,7 +39,7 @@ func main() {
 
 	// Middleware (TODO: Authentication)
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"http://localhost:5173", "http://10.0.0.*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -62,5 +62,5 @@ func main() {
 	})
 
 	fmt.Println("-+- Server started -+-")
-	http.ListenAndServe(fmt.Sprintf("localhost:%d", port), router)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 }
