@@ -2,6 +2,10 @@
 
 A go backend. I think this is a skill I want to work on but leaning into JS-heavy frameworks... so golang TBD.
 
+## Contributing
+
+Please see the parent directory README for more information here.
+
 ## Installation
 
 You'll need to ensure you install the go libraries with `go install`. Additionally, for development at least, I would recommend installing [air](https://github.com/air-verse/air), which is effectively just live reload.
