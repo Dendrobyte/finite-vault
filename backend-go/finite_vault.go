@@ -30,7 +30,7 @@ func health(w http.ResponseWriter, r *http.Request) {
  */
 
 func main() {
-	port := 5000
+	port := 5001
 	fmt.Printf("-+- Server starting on port %d... -+-\n", port)
 
 	db.InitMongoDB()
