@@ -9,12 +9,27 @@ You'll need to ensure you install the go libraries with `go install`. Additional
 ```bash
 go install github.com/air-verse/air@latest
 ```
+
 When running,
 
 - Add this alias to your Bash profile: `alias air='$(go env GOPATH)/bin/air'`
 - Make sure you have the `.env` file and it's in the root of `/backend-go`
 
-Until we get Docker set up, that's what will need to be done for now because of the path differences.
+### Docker
+
+To run Docker, first build the container with
+
+```bash
+docker build -t finite-vault .
+```
+
+and then run the container with
+
+```bash
+docker run -t --rm finite-vault
+```
+
+TODO: Proper Docker compose to set up allowed frontend hosts and stuff for production
 
 ## Env Variables
 
