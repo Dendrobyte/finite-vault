@@ -1,25 +1,17 @@
 /* custom color palette */
 
-/* color palette from <https://github.com/vuejs/theme> */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  --core-dark-green: #14281d;
+  --core-hunter-green: #355834;
+  --core-field-drab: #6e633d;
+  --core-ecru: #c2a878;
+  --core-cream: #eaefbd;
 
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  --white: #ffffff;
+  --white-soft: #f8f8f8;
 
-  --grey-indigo: #2c3e50;
-
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
-
-  --background-indigo: var(--vt-c-indigo);
-  --header-gold: rgba(255, 200, 60, 0.77);
-  --text-grey: rgba(235, 235, 235, 0.64);
+  --black: #181818;
+  --black-soft: #222222;
 }
 
 /* Simple CSS Reset */
@@ -34,15 +26,22 @@
 /* Start base body stuff */
 body {
   min-height: 100vh;
-  color: var(--color-text);
-  background: var(--grey-indigo);
+  background: var(--core-dark-green);
   transition:
     color 0.5s,
     background-color 0.5s;
   line-height: 1.6;
-  font-family: 'Helvetica Neue', sans-serif;
-  font-size: 16px;
+  font-family: 'Cambria', serif;
+  font-size: 12px;
+  font-weight: 600;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (min-width: 960px) {
+  body {
+    width: 960px;
+    margin: auto;
+  }
 }

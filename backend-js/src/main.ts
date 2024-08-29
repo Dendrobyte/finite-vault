@@ -6,7 +6,7 @@ async function bootstrap() {
 
   // Hello, my old friend (CORS)
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:5173', // TODO: Add the cloudflare URL
   });
 
   await app.listen(8080);

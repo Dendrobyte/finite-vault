@@ -2,8 +2,11 @@
 import { RouterView } from 'vue-router'
 import { useUserdataStore } from './stores/userdata'
 
+/* FOR HOSTING TO PROD */
+// Check the launch params here for environments: https://cli.vuejs.org/guide/mode-and-env.html
+
 useUserdataStore() // Initialize store (maybe not needed since called on welcome screen?)
-// TODO: Check local storage for a token and check that information.
+
 // TODO: Route respectively (e.g. if already logged in / there is a token and it's valid, make sure we redirect to the home page)
 </script>
 
@@ -22,17 +25,13 @@ useUserdataStore() // Initialize store (maybe not needed since called on welcome
 <style>
 /* TODO: Figure out how to make this max-mobile size within the browser */
 .main-container {
-  width: 50%;
+  width: 60%;
   margin: auto;
-  margin-top: 10vh;
-  background-color: var(--background-indigo);
-  padding: 20% 1vh;
+  margin-top: 16vh;
   text-align: center;
-  height: 80em;
-  border: 1px solid black;
-  box-shadow: black -8px 8px;
 }
 
+/* TODO: Oh yea, I should make this at some point */
 .footer {
   background-color: green;
 }
