@@ -76,7 +76,7 @@ func UpdateUserBalance(data UserData, change float32) (float32, error) {
 
 	userColl := mongoClient.Database(database).Collection("users")
 	newBalance := data.Balance - change
-
+	// TODO: Get their daily number, then increment the balance, then write it back. All in this function.
 	filter := bson.D{{Key: "email", Value: data.Email}}
 	update := bson.D{{Key: "balance", Value: newBalance}}
 	_, err := userColl.UpdateOne(context.TODO(), filter, update)

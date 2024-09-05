@@ -8,5 +8,5 @@ import "github.com/Dendrobyte/finite_vault/db"
 func IncrementBalanceByDailyNumber(data db.UserData) {
 	// TODO: Throw the daily number on the user data object to avoid "extra" db call? I guess we just have to send the whole user object to the backend...
 	//	     but I don't want to hold on to copies of all users here... Start from the other direction I guess
-
+	//		 Though, I wonder, maybe I'd need to make a second function that I could just incorporate every time a transaction is made? Yea let's do that, two functions.
 }
