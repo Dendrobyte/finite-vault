@@ -70,3 +70,11 @@ func createUser(email string, name string, userColl *mongo.Collection) (newUserD
 	fmt.Printf("Created new user for email %v\n", email)
 	return newUserData, nil
 }
+
+// Updates a user's balance and returns the updated balance
+func UpdateUserBalance(email string, change float32) float32 {
+
+	// Pick up here :)
+	// https://www.mongodb.com/docs/drivers/go/current/fundamentals/crud/write-operations/modify/#std-label-golang-change-document
+	return 0.00
+}
