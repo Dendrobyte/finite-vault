@@ -72,9 +72,17 @@ func createUser(email string, name string, userColl *mongo.Collection) (newUserD
 }
 
 // Updates a user's balance and returns the updated balance
-func UpdateUserBalance(email string, change float32) float32 {
+func UpdateUserBalance(data UserData, change float32) (float32, error) {
 
-	// Pick up here :)
-	// https://www.mongodb.com/docs/drivers/go/current/fundamentals/crud/write-operations/modify/#std-label-golang-change-document
-	return 0.00
+	userColl := mongoClient.Database(database).Collection("users")
+	newBalance := data.Balance - change
+
+	filter := bson.D{{Key: "email", Value: data.Email}}
+	update := bson.D{{Key: "balance", Value: newBalance}}
+	_, err := userColl.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return data.Balance, err
+	}
+
+	return newBalance, nil
 }
