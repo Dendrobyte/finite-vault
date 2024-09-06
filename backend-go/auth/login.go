@@ -129,7 +129,7 @@ func LoginProton(token string, redirect_uri string) UserInfo {
 	}
 
 	// TODO: Fetch initial balance from mongo as well, other function
-	userData := db.GetUser(data.UserData.Email, data.UserData.Name)
+	userData := db.GetUserDataOrCreate(data.UserData.Email, data.UserData.Name)
 	jwt, err := createJWT(data.UserData.Email)
 	if err != nil {
 		return UserInfo{} // TODO: Properly bubble up errors here

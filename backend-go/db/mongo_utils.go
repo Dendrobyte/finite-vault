@@ -39,9 +39,9 @@ func InitMongoDB() {
 	mongoClient = client
 }
 
-// Given an email, retrieves a user from the database
-// Name is not used for database calls, but for creation in case none provided
-func GetUser(email string, name string) (user UserData) {
+// Given an email and name, retrieves a user from the database
+// If no document is found, we create the user
+func GetUserDataOrCreate(email string, name string) (user UserData) {
 	userColl := mongoClient.Database(database).Collection("users")
 
 	err := userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}).Decode(&user)
@@ -55,6 +55,18 @@ func GetUser(email string, name string) (user UserData) {
 	}
 
 	return user
+}
+
+// Given a user email, get the user information from the database
+func GetExistingUserData(email string) (user UserData, err error) {
+	userColl := mongoClient.Database(database).Collection("users") // TODO: Can this move out...?
+
+	err = userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}).Decode(&user)
+	if err != nil {
+		return UserData{}, fmt.Errorf("error retrieving existing user from mongo: %v", err)
+	}
+
+	return user, nil
 }
 
 // Creates a new user, which happens if an email is not found in the database
@@ -71,12 +83,25 @@ func createUser(email string, name string, userColl *mongo.Collection) (newUserD
 	return newUserData, nil
 }
 
+// Retrieves a user's balance from mongo, filtered by email
+func GetUserBalance(email string) (float32, error) {
+	var result UserData
+
+	userColl := mongoClient.Database(database).Collection("users")
+	opts := options.FindOne().SetProjection(bson.D{{Key: "balance", Value: 1}})
+	err := userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}, opts).Decode(result)
+	if err != nil {
+		return 0.00, fmt.Errorf("getting user balance failed on mongo: %v", err)
+	}
+
+	return result.Balance, nil
+}
+
 // Updates a user's balance and returns the updated balance
 func UpdateUserBalance(data UserData, change float32) (float32, error) {
 
 	userColl := mongoClient.Database(database).Collection("users")
 	newBalance := data.Balance - change
-	// TODO: Get their daily number, then increment the balance, then write it back. All in this function.
 	filter := bson.D{{Key: "email", Value: data.Email}}
 	update := bson.D{{Key: "balance", Value: newBalance}}
 	_, err := userColl.UpdateOne(context.TODO(), filter, update)
@@ -85,4 +110,29 @@ func UpdateUserBalance(data UserData, change float32) (float32, error) {
 	}
 
 	return newBalance, nil
+}
+
+// Retrieves a user's daily increment number from mongo, filtered by email
+// TODO: May not be needed, only use just pulls entire user anyway
+func GetUserDailyIncrement(email string) (float32, error) {
+	var result UserData
+
+	userColl := mongoClient.Database(database).Collection("users")
+	opts := options.FindOne().SetProjection(bson.D{{Key: "balance", Value: 1}})
+	err := userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}, opts).Decode(result)
+	if err != nil {
+		return 0.00, fmt.Errorf("getting user balance failed on mongo: %v", err)
+	}
+
+	return result.Balance, nil
+}
+
+func UpdateUserLastCheckin(email string, timestamp int64) (err error) {
+
+	userColl := mongoClient.Database(database).Collection("users")
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.D{{Key: "last_checkin", Value: timestamp}}
+	_, err = userColl.UpdateOne(context.TODO(), filter, update)
+
+	return
 }
