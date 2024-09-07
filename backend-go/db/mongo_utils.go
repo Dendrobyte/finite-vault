@@ -40,10 +40,10 @@ func InitMongoDB() {
 		panic(err)
 	}
 
+	mongoClient = client
+
 	userColl = mongoClient.Database(database).Collection("users")
 	tnxColl = mongoClient.Database(database).Collection("transactions")
-
-	mongoClient = client
 }
 
 // Given an email and name, retrieves a user from the database
