@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Dendrobyte/finite_vault/db"
+	"github.com/Dendrobyte/finite_vault/vault"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
@@ -59,6 +60,17 @@ func LoginByService(w http.ResponseWriter, r *http.Request) {
 		token := r.FormValue("token")
 		redirect_uri := r.FormValue("redirect_uri")
 		userLoginInfo := LoginProton(token, redirect_uri)
+
+		// Increment on login
+		updatedBalance, err := vault.IncrementBalanceByDailyNumber(userLoginInfo.Email)
+		if err != nil {
+			if err != vault.ErrNotEnoughTimeElapsed {
+				log.Printf("Issue with incrementing a user's daily balance: %v\n", err)
+			}
+		}
+
+		// Just update the object being returned, given the update has been successful at this point
+		userLoginInfo.Balance = updatedBalance
 
 		// Write encoded JSON to the w object. Once google is implemented, this can be moved outside the if/else blocks
 		json.NewEncoder(w).Encode(userLoginInfo)
