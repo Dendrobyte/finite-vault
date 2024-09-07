@@ -79,6 +79,27 @@ func IncrementBalanceByDailyNumber(email string) (newBalance float32, err error)
 	return newBalance, nil
 }
 
+// Retrieve all transactions for a usert
+func GetAllUserTransactions(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	userData, err := db.GetExistingUserData(email) // TODO: For the third time- pull email from token!! It means we don't have to "validate" with a db call lol, this is unnecessary
+	if err != nil {
+		log.Printf("Get rid of me! Error with all user transactions\n")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	tnxObjs, err := db.GetAllUserTransactions(userData)
+	if err != nil {
+		log.Printf("error retrieving transactions: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Marshal to JSON for the frontend
+	json.NewEncoder(w).Encode(tnxObjs)
+}
+
 // Log a new user transaction
 func PostNewUserTransaction(w http.ResponseWriter, r *http.Request) {
 	// Pull the user data from the db

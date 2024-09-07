@@ -134,14 +134,31 @@ func UpdateUserLastCheckin(email string, timestamp int64) (err error) {
 	return
 }
 
+// TODO: Don't pass in the entire user data, run a join with the id or something in the table having just received the email (select all transactions where id in userdata.transaction_ids)
+//
+//	https://hevodata.com/learn/mongodb-join-two-collections/
+//
 // Return all transactions that belong to a user with the given email
-func GetAllUserTransactions(email string) {
-	// https://hevodata.com/learn/mongodb-join-two-collections/
+func GetAllUserTransactions(userData UserData) (resultTnxObjs []Transaction, err error) {
+	tnxIds := userData.TransactionIds
+	filter := bson.M{"_id": bson.M{"$in": tnxIds}}
+
+	cursor, err := tnxColl.Find(context.TODO(), filter)
+	if err != nil {
+		log.Printf("Error retrieving transaction ids for user %v: %v\n", userData.Email, err)
+		return []Transaction{}, nil
+	}
+
+	if err = cursor.All(context.TODO(), &resultTnxObjs); err != nil {
+		log.Printf("Error iterating over the transactions retrieved from mong;: %v\n", err)
+		return []Transaction{}, nil
+	}
+
+	return
 }
 
 // Creates a new transaction at the now time for a given user
 func CreateNewTransaction(email string, amount float32, description string) error {
-
 	// First, let's create the transaction
 	newTransaction := Transaction{Amount: amount, Description: description, CreationTimestamp: time.Now().Unix()}
 	tnxInsertResult, err := tnxColl.InsertOne(context.TODO(), newTransaction)
@@ -153,6 +170,7 @@ func CreateNewTransaction(email string, amount float32, description string) erro
 	}
 
 	// Add that transaction ID into the user's collection
+	// TODO: Creating some sort of session so that we don't insert a transaction without attaching it to a user?
 	filter := bson.D{{Key: "email", Value: email}}
 	update := bson.M{"$push": bson.D{{Key: "users.$.transaction_ids", Value: tnxId}}}
 
