@@ -3,7 +3,9 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,6 +17,8 @@ var (
 	MONGO_URI   string
 	mongoClient *mongo.Client
 	database    string = "test"
+	userColl    *mongo.Collection
+	tnxColl     *mongo.Collection
 )
 
 func init() {
@@ -36,14 +40,15 @@ func InitMongoDB() {
 		panic(err)
 	}
 
+	userColl = mongoClient.Database(database).Collection("users")
+	tnxColl = mongoClient.Database(database).Collection("transactions")
+
 	mongoClient = client
 }
 
 // Given an email and name, retrieves a user from the database
 // If no document is found, we create the user
 func GetUserDataOrCreate(email string, name string) (user UserData) {
-	userColl := mongoClient.Database(database).Collection("users")
-
 	err := userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}).Decode(&user)
 	if err == mongo.ErrNoDocuments {
 		user, _ = createUser(email, name, userColl)
@@ -59,8 +64,6 @@ func GetUserDataOrCreate(email string, name string) (user UserData) {
 
 // Given a user email, get the user information from the database
 func GetExistingUserData(email string) (user UserData, err error) {
-	userColl := mongoClient.Database(database).Collection("users") // TODO: Can this move out...?
-
 	err = userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}).Decode(&user)
 	if err != nil {
 		return UserData{}, fmt.Errorf("error retrieving existing user from mongo: %v", err)
@@ -74,12 +77,11 @@ func createUser(email string, name string, userColl *mongo.Collection) (newUserD
 	newUserData = UserData{Email: email, Name: name, Balance: 0.00}
 	_, err = userColl.InsertOne(context.TODO(), newUserData)
 	if err != nil {
-		fmt.Printf("Error creating a new user for email %s: %v", email, err)
+		log.Printf("Error creating a new user for email %s: %v", email, err)
 		return
 	}
 
 	// It's been inserted into the database, so we can just return the information we would effectively retrieve normally (i.e. defaults)
-	fmt.Printf("Created new user for email %v\n", email)
 	return newUserData, nil
 }
 
@@ -87,7 +89,6 @@ func createUser(email string, name string, userColl *mongo.Collection) (newUserD
 func GetUserBalance(email string) (float32, error) {
 	var result UserData
 
-	userColl := mongoClient.Database(database).Collection("users")
 	opts := options.FindOne().SetProjection(bson.D{{Key: "balance", Value: 1}})
 	err := userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}, opts).Decode(result)
 	if err != nil {
@@ -99,8 +100,6 @@ func GetUserBalance(email string) (float32, error) {
 
 // Updates a user's balance and returns the updated balance
 func UpdateUserBalance(data UserData, change float32) (float32, error) {
-
-	userColl := mongoClient.Database(database).Collection("users")
 	newBalance := data.Balance - change
 	filter := bson.D{{Key: "email", Value: data.Email}}
 	update := bson.D{{Key: "balance", Value: newBalance}}
@@ -117,7 +116,6 @@ func UpdateUserBalance(data UserData, change float32) (float32, error) {
 func GetUserDailyIncrement(email string) (float32, error) {
 	var result UserData
 
-	userColl := mongoClient.Database(database).Collection("users")
 	opts := options.FindOne().SetProjection(bson.D{{Key: "balance", Value: 1}})
 	err := userColl.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}, opts).Decode(result)
 	if err != nil {
@@ -129,10 +127,39 @@ func GetUserDailyIncrement(email string) (float32, error) {
 
 func UpdateUserLastCheckin(email string, timestamp int64) (err error) {
 
-	userColl := mongoClient.Database(database).Collection("users")
 	filter := bson.D{{Key: "email", Value: email}}
 	update := bson.D{{Key: "last_checkin", Value: timestamp}}
 	_, err = userColl.UpdateOne(context.TODO(), filter, update)
 
 	return
+}
+
+// Return all transactions that belong to a user with the given email
+func GetAllUserTransactions(email string) {
+	// https://hevodata.com/learn/mongodb-join-two-collections/
+}
+
+// Creates a new transaction at the now time for a given user
+func CreateNewTransaction(email string, amount float32, description string) error {
+
+	// First, let's create the transaction
+	newTransaction := Transaction{Amount: amount, Description: description, CreationTimestamp: time.Now().Unix()}
+	tnxInsertResult, err := tnxColl.InsertOne(context.TODO(), newTransaction)
+	tnxId := tnxInsertResult.InsertedID
+
+	if err != nil {
+		log.Printf("Error creating a new transaction for user with email %s: %v", email, err)
+		return err
+	}
+
+	// Add that transaction ID into the user's collection
+	filter := bson.D{{Key: "email", Value: email}}
+	update := bson.M{"$push": bson.D{{Key: "users.$.transaction_ids", Value: tnxId}}}
+
+	_, err = userColl.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		fmt.Printf("There was a failure appending transaction with id %v to user with email %v's transaction ids: %v", tnxId, email, err)
+		return err
+	}
+	return nil
 }

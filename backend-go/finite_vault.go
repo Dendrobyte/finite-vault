@@ -60,9 +60,9 @@ func main() {
 	/* Finite Vault Feature Routes */
 	router.Get("/vaultBalance", vault.GetUserVaultBalance)
 
-	// router.Get("/transactions", vault.GetUserTransactions)
-	
-	// router.Post("/newTransaction", vault.AddUserTransaction) // TODO: Put?
+	// router.Get("/userTransactions", vault.GetUserTransactions)
+
+	router.Post("/newTransaction", vault.PostNewUserTransaction) // TODO: Put?
 
 	/* Generic */
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {

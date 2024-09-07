@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Dendrobyte/finite_vault/db"
@@ -28,6 +29,7 @@ func GetUserVaultBalance(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Failed to get balance for user with email: %v\n", email)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	// TODO: Verify this actually sends as an integer for the field...? It's JSON so it should be ok, but maybe marshaling from struct is generally better?
@@ -77,4 +79,31 @@ func IncrementBalanceByDailyNumber(email string) (newBalance float32, err error)
 	return newBalance, nil
 }
 
-// TODO: Routes for transactions
+// Log a new user transaction
+func PostNewUserTransaction(w http.ResponseWriter, r *http.Request) {
+	// Pull the user data from the db
+	email := r.FormValue("email")
+	amount := r.FormValue("tnx_amount")
+	tnxAmount, err := strconv.ParseFloat(amount, 32)
+	if err != nil {
+		log.Printf("Transaction amount of %v is invalid!\n", amount)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+	description := r.FormValue("tnx_description")  // TODO: Sanitize description
+	userData, err := db.GetExistingUserData(email) // TODO: Again, extract email from the token here
+	if err != nil {
+		log.Printf("Failed to post a transaction for user with email: %v\n", email)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = db.CreateNewTransaction(userData.Email, float32(tnxAmount), description)
+	if err != nil {
+		log.Printf("Failed to create a new transaction: %v", err) // TODO: Make a proper error?
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Returning a 200 should be fine for our purposes, frontend can act accordingly
+}
