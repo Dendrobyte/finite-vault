@@ -56,6 +56,9 @@ func main() {
 
 	router.Get("/generateToken", auth.TestCreateJWT)
 
+	/* Finite Vault Feature Routes */
+	router.Get("/vaultBalance", GetUserVaultBalance)
+
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Permanent redirect for the base route?
 		http.Redirect(w, r, "/health", http.StatusTemporaryRedirect)

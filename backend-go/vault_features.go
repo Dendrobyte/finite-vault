@@ -1,21 +1,39 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math"
+	"net/http"
 	"time"
 
 	"github.com/Dendrobyte/finite_vault/db"
 )
 
 var (
+	ErrGetBalance           = errors.New("failed to get user's balance")
 	ErrDailyNumberIncr      = errors.New("error attempting to increment a user's daily balance")
 	ErrNotEnoughTimeElapsed = errors.New("not enough time has elapsed to update the user's balance")
 )
 
 // TODO: Move this into the main Finite Vault go file for when this is all refactored out
 //		 No point if there's only one function in here...? Thie files may need some re-org to avoid cyclic dependencies
+
+func GetUserVaultBalance(w http.ResponseWriter, r *http.Request) {
+	// TODO: Instead of passing email, extract email from the token!
+	email := r.FormValue("email")
+	userBal, err := db.GetUserBalance(email)
+	if err != nil {
+		log.Printf("Failed to get balance for user with email: %v\n", email)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// TODO: Verify this actually sends as an integer for the field...? It's JSON so it should be ok, but maybe marshaling from struct is generally better?
+	respObj := []byte(fmt.Sprintf(`{"balance": %v}`, userBal)) // TODO: Public util function for one-off responses like this?
+	json.NewEncoder(w).Encode(respObj)
+}
 
 // Takes a user's email and checks whether or not to increase their daily number based on "now"
 func IncrementBalanceByDailyNumber(email string) (newBalance float32, err error) {
