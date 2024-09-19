@@ -16,7 +16,7 @@ type UserData struct {
 }
 
 type Transaction struct {
-	Amount            float32 `bson:"amount"`
-	Description       string  `bson:"description"`
-	CreationTimestamp int64   `bson:"creation_ts"`
+	Amount            float32 `bson:"amount" json:"amount"`
+	Description       string  `bson:"description" json:"description"`
+	CreationTimestamp int64   `bson:"creation_ts" json:"creation_ts"`
 }

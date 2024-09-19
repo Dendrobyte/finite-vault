@@ -57,7 +57,7 @@ func IncrementBalanceByDailyNumber(email string) (newBalance float32, err error)
 
 	// TODO: Toggle based on user setting
 	// Get how many days have passed, e.g. no check-in for a day so update daily bal * 2
-	daysSinceLastUpdate := float32(math.Floor(timeElapsedHrs / 24)) // Ignore remainder, we may still be risking an extra day
+	daysSinceLastUpdate := float32(math.Floor(timeElapsedHrs/24)) + 1 // Add one to account for "today"
 
 	// Update the balance if so, and by the approprate amount\
 	incrAmount := daysSinceLastUpdate * userData.DailyIncrement
@@ -79,31 +79,30 @@ func IncrementBalanceByDailyNumber(email string) (newBalance float32, err error)
 	return newBalance, nil
 }
 
-// Retrieve all transactions for a usert
-func GetAllUserTransactions(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	userData, err := db.GetExistingUserData(email) // TODO: For the third time- pull email from token!! It means we don't have to "validate" with a db call lol, this is unnecessary
+// Retrieve all transactions from a given user
+func GetUserTransactions(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email") // TODO: Pull from the token pls
+	userData, err := db.GetExistingUserData(email)
 	if err != nil {
-		log.Printf("Get rid of me! Error with all user transactions\n")
+		log.Printf("Failed to get all transaction for user with email: %v\n", email)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	tnxObjs, err := db.GetAllUserTransactions(userData)
+	allTnxs, err := db.GetAllUserTransactions(userData)
 	if err != nil {
-		log.Printf("error retrieving transactions: %v", err)
+		log.Printf("Failed to retrieve transactions: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	// Marshal to JSON for the frontend
-	json.NewEncoder(w).Encode(tnxObjs)
+	json.NewEncoder(w).Encode(allTnxs)
 }
 
 // Log a new user transaction
 func PostNewUserTransaction(w http.ResponseWriter, r *http.Request) {
 	// Pull the user data from the db
-	email := r.FormValue("email")
+	email := r.FormValue("email") // TODO: Pull from the token pls
 	amount := r.FormValue("tnx_amount")
 	tnxAmount, err := strconv.ParseFloat(amount, 32)
 	if err != nil {
@@ -125,6 +124,10 @@ func PostNewUserTransaction(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// Call an updated balance on the backend
+	// TODO: Lordy this is not atomic, lol
+	db.UpdateUserBalance(userData, float32(-1*tnxAmount))
 
 	// Returning a 200 should be fine for our purposes, frontend can act accordingly
 }

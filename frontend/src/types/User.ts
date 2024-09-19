@@ -9,3 +9,9 @@ export type ValidatedUser = {
   valid: boolean
   email: string
 }
+
+export type UserTransaction = {
+  creation_ts: number
+  amount: number
+  description: string
+}

@@ -59,8 +59,9 @@ func main() {
 
 	/* Finite Vault Feature Routes */
 	router.Get("/vaultBalance", vault.GetUserVaultBalance)
+	// TODO: Make a route to update all data so the frontend can hit that if it "knows" enough time has elapsed
 
-	// router.Get("/userTransactions", vault.GetUserTransactions)
+	router.Get("/getUserTransactions", vault.GetUserTransactions)
 
 	router.Post("/newTransaction", vault.PostNewUserTransaction) // TODO: Put?
 

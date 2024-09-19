@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { type User } from '../types/User'
+import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
+import { type User, type UserTransaction } from '../types/User';
 
 export const useUserdataStore = defineStore('userdata', () => {
   const localStorageKey = 'infgame_userdata'
@@ -10,7 +10,7 @@ export const useUserdataStore = defineStore('userdata', () => {
   const email = ref('')
   const balance = ref(0.0)
   const dailyNumber = 4
-  const expenses = ref([{ amount: 4, description: 'Nothing' }])
+  const expenses = ref([] as {amount: number, description: string}[])
   const loggedIn = ref(false)
   const authToken = ref('')
 
@@ -32,6 +32,10 @@ export const useUserdataStore = defineStore('userdata', () => {
   function fileNewExpense(amount: number, reason: string) {
     balance.value -= amount
     expenses.value.push({ amount: amount, description: reason })
+  }
+
+  function addExpense(tnx: UserTransaction) {
+    expenses.value.push({amount: tnx.amount, description: tnx.description})
   }
 
   // Responsible for updating the state and logging in the user
@@ -69,5 +73,6 @@ export const useUserdataStore = defineStore('userdata', () => {
     getExpenses,
     isLoggedIn,
     loadUserFromLocalStorage,
+    addExpense
   }
 })

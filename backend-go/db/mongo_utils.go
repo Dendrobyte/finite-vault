@@ -9,6 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -74,7 +75,9 @@ func GetExistingUserData(email string) (user UserData, err error) {
 
 // Creates a new user, which happens if an email is not found in the database
 func createUser(email string, name string, userColl *mongo.Collection) (newUserData UserData, err error) {
-	newUserData = UserData{Email: email, Name: name, Balance: 0.00}
+	// TODO: Figure something out for the start balance, for now just whatever they set as daily increment
+	// TODO: I need the whole onboarding step anyway
+	newUserData = UserData{Email: email, Name: name, Balance: 10, DailyIncrement: 10, LastCheckin: time.Now().Unix(), TransactionIds: []primitive.ObjectID{}}
 	_, err = userColl.InsertOne(context.TODO(), newUserData)
 	if err != nil {
 		log.Printf("Error creating a new user for email %s: %v", email, err)
@@ -99,10 +102,11 @@ func GetUserBalance(email string) (float32, error) {
 }
 
 // Updates a user's balance and returns the updated balance
+// Pass in a negative for transactions or charges
 func UpdateUserBalance(data UserData, change float32) (float32, error) {
-	newBalance := data.Balance - change
+	newBalance := data.Balance + change
 	filter := bson.D{{Key: "email", Value: data.Email}}
-	update := bson.D{{Key: "balance", Value: newBalance}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "balance", Value: newBalance}}}}
 	_, err := userColl.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		return data.Balance, err
@@ -126,9 +130,8 @@ func GetUserDailyIncrement(email string) (float32, error) {
 }
 
 func UpdateUserLastCheckin(email string, timestamp int64) (err error) {
-
 	filter := bson.D{{Key: "email", Value: email}}
-	update := bson.D{{Key: "last_checkin", Value: timestamp}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "last_checkin", Value: timestamp}}}}
 	_, err = userColl.UpdateOne(context.TODO(), filter, update)
 
 	return
@@ -165,18 +168,18 @@ func CreateNewTransaction(email string, amount float32, description string) erro
 	tnxId := tnxInsertResult.InsertedID
 
 	if err != nil {
-		log.Printf("Error creating a new transaction for user with email %s: %v", email, err)
+		log.Printf("Error creating a new transaction for user with email %s: %v\n", email, err)
 		return err
 	}
 
 	// Add that transaction ID into the user's collection
 	// TODO: Creating some sort of session so that we don't insert a transaction without attaching it to a user?
 	filter := bson.D{{Key: "email", Value: email}}
-	update := bson.M{"$push": bson.D{{Key: "users.$.transaction_ids", Value: tnxId}}}
+	update := bson.M{"$push": bson.D{{Key: "transaction_ids", Value: tnxId}}}
 
 	_, err = userColl.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		fmt.Printf("There was a failure appending transaction with id %v to user with email %v's transaction ids: %v", tnxId, email, err)
+		log.Printf("There was a failure appending transaction with id %v to user with email %v's transaction ids: %v\n", tnxId, email, err)
 		return err
 	}
 	return nil
