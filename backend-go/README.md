@@ -19,6 +19,8 @@ When running,
 - Add this alias to your Bash profile: `alias air='$(go env GOPATH)/bin/air'`
 - Make sure you have the `.env` file and it's in the root of `/backend-go`
 
+You'll need to make sure that your IP is connected to the Mongo Atlas cluster. It'll be a TODO to have a production / local mongo setup to avoid this... seeing as we don't want to be running dev on the same production database lmao.
+
 ### Docker
 
 To run Docker, first build the container with

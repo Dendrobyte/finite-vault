@@ -6,6 +6,7 @@ import (
 
 	"github.com/Dendrobyte/finite_vault/auth"
 	"github.com/Dendrobyte/finite_vault/db"
+	"github.com/Dendrobyte/finite_vault/vault"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
@@ -56,6 +57,15 @@ func main() {
 
 	router.Get("/generateToken", auth.TestCreateJWT)
 
+	/* Finite Vault Feature Routes */
+	router.Get("/vaultBalance", vault.GetUserVaultBalance)
+	// TODO: Make a route to update all data so the frontend can hit that if it "knows" enough time has elapsed
+
+	router.Get("/getUserTransactions", vault.GetUserTransactions)
+
+	router.Post("/newTransaction", vault.PostNewUserTransaction) // TODO: Put?
+
+	/* Generic */
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Permanent redirect for the base route?
 		http.Redirect(w, r, "/health", http.StatusTemporaryRedirect)
