@@ -50,7 +50,7 @@ func main() {
 
 	// Middleware (TODO: Authentication)
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{FRONTEND_ALLOWED_ORIGIN}, // TODO: Test to make sure CORS isn't angy
+		AllowedOrigins:   []string{FRONTEND_ALLOWED_ORIGIN},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
