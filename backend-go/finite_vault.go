@@ -2,13 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/Dendrobyte/finite_vault/auth"
 	"github.com/Dendrobyte/finite_vault/db"
 	"github.com/Dendrobyte/finite_vault/vault"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
 )
 
 type HealthResponse struct {
@@ -38,9 +41,16 @@ func main() {
 
 	router := chi.NewRouter()
 
+	// Get the frontend allowed origin from env
+	if err := godotenv.Load(); err != nil {
+		log.Println(err)
+		panic(err)
+	}
+	FRONTEND_ALLOWED_ORIGIN := os.Getenv("FRONTEND_ALLOWED_ORIGIN")
+
 	// Middleware (TODO: Authentication)
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"}, //[]string{"http://localhost:5173", "http://10.0.0.*"},
+		AllowedOrigins:   []string{FRONTEND_ALLOWED_ORIGIN}, // TODO: Test to make sure CORS isn't angy
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
