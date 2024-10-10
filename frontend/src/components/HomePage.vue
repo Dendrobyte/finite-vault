@@ -2,10 +2,14 @@
 import ExpenseRow from '@/components/ExpenseRow.vue'
 import router from '@/router'
 import { useUserdataStore } from '@/stores/userdata'
+import axios from 'axios'
 import { onMounted, ref } from 'vue'
+import { type UserTransaction } from '../types/User'
 
 // Pull username from state
 const userdata = useUserdataStore()
+
+const BACKEND_URI: string = import.meta.env.VITE_BACKEND_URI
 
 const expenseAmount = ref(0.0)
 const expenseReason = ref('')
@@ -64,17 +68,71 @@ function getExpenseFromExpenseStr(expenseStr: string): number {
   return parseFloat(expenseStr)
 }
 
-function submitExpense() {
-  // TODO: Don't forget to validate expense reason (and revalidate final amount, THEN show an error)
-  userdata.fileNewExpense(expenseAmount.value, expenseReason.value)
-  expenseAmount.value = 0.0
-  expenseAmountStr.value = ''
-  expenseReason.value = ''
+// TODO: Don't forget to validate expense reason (and revalidate final amount, THEN show an error)
+async function submitExpense() {
+  await axios
+    .post(
+      `${BACKEND_URI}/newTransaction`,
+      {
+        email: userdata.email,
+        tnx_amount: expenseAmount.value,
+        tnx_description: expenseReason.value
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    )
+    .then((res) => {
+      if (res.status === 200) {
+        // Updates the frontend on success
+        userdata.fileNewExpense(expenseAmount.value, expenseReason.value)
+        expenseAmount.value = 0.0
+        expenseAmountStr.value = ''
+        expenseReason.value = ''
+      }
+    })
+    .catch((err) => {
+      console.log('error with new transaction!')
+      console.error(err)
+      return false
+    })
 }
 
 // Simple check to make sure we can submit the form
 function canSubmitForm(): boolean {
   return isValidExpenseAmount.value && expenseReason.value.length > 0
+}
+
+// Retrieve all transactions for current user and load them into the state
+// TODO: Put this function on the state and do state stuff :)
+async function getUserTransactions() {
+  console.log('hit!')
+  await axios
+    .get(`${BACKEND_URI}/getUserTransactions`, {
+      params: { email: userdata.email },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    .then((res) => {
+      if (res.status === 200) {
+        console.log('data: ', res.data)
+        // TODO: Create a list, sort by creation TS, and then the components should take care of themselves
+        //       Or if I wanted to be fancy, you could binary insert. But imo one page refresh is better.
+        res.data.forEach((tnx: UserTransaction) => {
+          console.log('Filing away: ', tnx)
+          userdata.addExpense(tnx)
+        })
+        console.log(res.data)
+      }
+    })
+    .catch((err) => {
+      console.log('error with fetching transactions!')
+      console.error(err)
+      return false
+    })
 }
 
 onMounted(() => {
@@ -84,6 +142,12 @@ onMounted(() => {
   if (!userdata.isLoggedIn) {
     console.log('No login session present!')
     router.push('/')
+  } else {
+    // Just get all the transactions here, like we would get all data on every refresh anyway.
+    // It's just here because otherwise we do it on login, but we should always be refreshing data when we check frontend.
+    // TODO: Store in local storage and manage hitting backend when necessary, using the state modifications I'm using
+    //       I think I just need to learn how to better store Pinia state(s)?
+    getUserTransactions()
   }
 })
 </script>
@@ -91,7 +155,8 @@ onMounted(() => {
 <template>
   <!-- START OF DEVELOPER BUTTONS -->
 
-  <button @click="userdata.incrementForDay()">Increment Bal by {{ userdata.dailyNumber }}</button>
+  <button @click="userdata.incrementForDay()">Increment daily number</button><br />
+  <button @click="getUserTransactions()">Fetch all transactions</button>
 
   <!-- END OF DEVELOPER BUTTONS -->
   <p style="color: white">Settings will go here</p>

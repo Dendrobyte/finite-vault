@@ -2,12 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/Dendrobyte/finite_vault/auth"
 	"github.com/Dendrobyte/finite_vault/db"
+	"github.com/Dendrobyte/finite_vault/vault"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
 )
 
 type HealthResponse struct {
@@ -30,16 +34,23 @@ func health(w http.ResponseWriter, r *http.Request) {
  */
 
 func main() {
-	port := 5000
+	port := 5001
 	fmt.Printf("-+- Server starting on port %d... -+-\n", port)
 
 	db.InitMongoDB()
 
 	router := chi.NewRouter()
 
+	// Get the frontend allowed origin from env
+	if err := godotenv.Load(); err != nil {
+		log.Println(err)
+		panic(err)
+	}
+	FRONTEND_ALLOWED_ORIGIN := os.Getenv("FRONTEND_ALLOWED_ORIGIN")
+
 	// Middleware (TODO: Authentication)
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://10.0.0.*"},
+		AllowedOrigins:   []string{FRONTEND_ALLOWED_ORIGIN}, // TODO: Test to make sure CORS isn't angy
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -56,6 +67,15 @@ func main() {
 
 	router.Get("/generateToken", auth.TestCreateJWT)
 
+	/* Finite Vault Feature Routes */
+	router.Get("/vaultBalance", vault.GetUserVaultBalance)
+	// TODO: Make a route to update all data so the frontend can hit that if it "knows" enough time has elapsed
+
+	router.Get("/getUserTransactions", vault.GetUserTransactions)
+
+	router.Post("/newTransaction", vault.PostNewUserTransaction) // TODO: Put?
+
+	/* Generic */
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Permanent redirect for the base route?
 		http.Redirect(w, r, "/health", http.StatusTemporaryRedirect)
