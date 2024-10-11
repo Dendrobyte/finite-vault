@@ -52,10 +52,8 @@ const oauthCallbackGoogle = async (response: any) => {
 
 function startSimpleLoginSignin() {
   // TODO: Work out a .env here so that on cloudflare you can use the proper https://finite-vault.pages.dev/ domain
-  console.log(`Triggering with redirect uri ${REDIRECT_URI}`)
   let authUrl = `https://app.simplelogin.io/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=profile&state='noidea'}`
-  console.log('auth url: ' + authUrl)
-  //location.href = authUrl
+  location.href = authUrl
 }
 
 async function endSimpleLoginSignin(code: string) {
