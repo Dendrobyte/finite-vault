@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/Dendrobyte/finite_vault/auth"
 	"github.com/Dendrobyte/finite_vault/db"
@@ -46,11 +45,12 @@ func main() {
 		log.Println(err)
 		panic(err)
 	}
-	FRONTEND_ALLOWED_ORIGIN := os.Getenv("FRONTEND_ALLOWED_ORIGIN")
+	// FRONTEND_ALLOWED_ORIGIN := os.Getenv("FRONTEND_ALLOWED_ORIGIN")
 
 	// Middleware (TODO: Authentication)
 	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{FRONTEND_ALLOWED_ORIGIN}, // TODO: Test to make sure CORS isn't angy
+		// AllowedOrigins:   []string{FRONTEND_ALLOWED_ORIGIN, "https://infinitegame.markobacon.com/"},
+		AllowedOrigins:   []string{"https://*", "http://*"}, // FIWB
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
