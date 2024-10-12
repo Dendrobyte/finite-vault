@@ -56,7 +56,6 @@ function startSimpleLoginSignin() {
 }
 
 async function endSimpleLoginSignin(code: string) {
-  console.log('Triggering end')
   await axios
     .post(
       `${BACKEND_URI}/login/proton`,
