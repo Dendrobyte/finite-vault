@@ -1,6 +1,10 @@
 # Finite Vault
 
-Repository for the Finite Vault project.
+Repository for the Finite Vault project, **now deprecated to pursue the bigger project of Infinite Game.** You can find the development site here: http://infinitegame.markobacon.com/ (if it isn't Finite Vault, then we've moved on to Infinite Game to production!)
+
+It's buggy and feature lacking, but it hit my MVP. The expenses reverse when user data updates, you can't change your own daily number, expenses log every expense (aren't paginated), etc. Feel free to reach out on Twitter @Mobkinz78 if you have questions or anything.
+
+## PREVIOUS README ##
 
 A stop on the road to excellence.
 
