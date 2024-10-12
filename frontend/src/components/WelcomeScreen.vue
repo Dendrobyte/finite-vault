@@ -158,7 +158,9 @@ onMounted(async () => {
       <GoogleLogin :callback="oauthCallbackGoogle" class="google-button-wrapper">
         <button class="login-button">Sign in with Google</button>
       </GoogleLogin>
-      <p>Google login does not work, I just never implemented it on the Golang backend.</p>
+      <p style="color: red">
+        Google login does not work, I just never implemented it on the Golang backend.
+      </p>
     </div>
   </div>
 </template>
