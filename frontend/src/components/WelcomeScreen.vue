@@ -56,6 +56,7 @@ function startSimpleLoginSignin() {
 }
 
 async function endSimpleLoginSignin(code: string) {
+  console.log('Triggering end')
   await axios
     .post(
       `${BACKEND_URI}/login/proton`,
@@ -65,7 +66,6 @@ async function endSimpleLoginSignin(code: string) {
       },
       {
         headers: {
-          'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }
@@ -92,7 +92,6 @@ async function validateToken(token: string): Promise<[valid: boolean, email: str
       },
       {
         headers: {
-          'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }
