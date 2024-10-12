@@ -131,6 +131,12 @@ async function getUserTransactions() {
     })
 }
 
+function dev_logout() {
+  userdata.logOutUser()
+  console.log('Logged out from dev button, rerouting to base.')
+  router.push('/')
+}
+
 onMounted(() => {
   // TODO: Redirection is OK bc we'll always redirect on every page refresh... Do I need this everywhere?
   //       Worth thinking this through in terms of how to handle each page load. Then again, it's a SPA so this should be in the parent
@@ -139,23 +145,13 @@ onMounted(() => {
     console.log('No login session present!')
     router.push('/')
   } else {
-    // Just get all the transactions here, like we would get all data on every refresh anyway.
-    // It's just here because otherwise we do it on login, but we should always be refreshing data when we check frontend.
-    // TODO: Store in local storage and manage hitting backend when necessary, using the state modifications I'm using
-    //       I think I just need to learn how to better store Pinia state(s)?
     getUserTransactions()
   }
 })
 </script>
 
 <template>
-  <!-- START OF DEVELOPER BUTTONS -->
-
-  <button @click="userdata.incrementForDay()">Increment daily number</button><br />
-  <button @click="getUserTransactions()">Fetch all transactions</button>
-
-  <!-- END OF DEVELOPER BUTTONS -->
-  <p style="color: white">Settings will go here</p>
+  <p style="color: white">Settings will go here. Default daily number is 10.</p>
 
   <h1 class="vault-title-text">{{ userdata.username }}'s Vault</h1>
   <div class="vault-balance">
@@ -198,9 +194,33 @@ onMounted(() => {
       :key="idx"
       :amount="expense.amount"
       :description="expense.description"
-      :date="1724885210"
+      :date="expense.creation_ts"
     />
   </div>
+
+  <!-- START OF DEVELOPER BUTTONS -->
+  <br />
+  <hr />
+  <br />
+  <h1 style="color: #c70039; font-size: 24px">
+    You are looking at a dev version of "Finite Vault". It is a starting ground for this eventual
+    site, "Infinite Game".
+  </h1>
+  <button @click="dev_logout()">Log Out</button><br />
+  <p style="color: white">
+    Balance doesn't dynamically refresh so relog to see updated balance if you think it should have
+    updated.
+  </p>
+  <br />
+  <button @click="userdata.incrementForDay()">Increment daily number</button><br />
+  <button @click="getUserTransactions()">Fetch all transactions</button>
+  <br />
+
+  <h1 style="color: #daf7a6; font-size: 16px">
+    This little area of buttons is for development. You can find a video on what this is by watching
+    <a href="">this devlog on YouTube</a>.
+  </h1>
+  <!-- END OF DEVELOPER BUTTONS -->
 </template>
 
 <style>
