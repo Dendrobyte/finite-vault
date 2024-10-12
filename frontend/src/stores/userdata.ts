@@ -10,7 +10,7 @@ export const useUserdataStore = defineStore('userdata', () => {
   const email = ref('')
   const balance = ref(0.0)
   const dailyNumber = 4
-  const expenses = ref([] as {amount: number, description: string}[])
+  const expenses = ref([] as {amount: number, description: string, creation_ts: number}[])
   const loggedIn = ref(false)
   const authToken = ref('')
 
@@ -18,7 +18,7 @@ export const useUserdataStore = defineStore('userdata', () => {
   // TODO: Make these into functions with = () ?
   const getBalance = computed(() => balance.value)
 
-  const getExpenses = computed(() => expenses.value)
+  const getExpenses = computed(() => expenses.value.reverse())
 
   const getAuthToken = computed(() => authToken.value);
 
@@ -31,11 +31,12 @@ export const useUserdataStore = defineStore('userdata', () => {
 
   function fileNewExpense(amount: number, reason: string) {
     balance.value -= amount
-    expenses.value.push({ amount: amount, description: reason })
+    const timestamp = Date.now()
+    expenses.value.push({ amount: amount, description: reason, creation_ts: timestamp })
   }
 
   function addExpense(tnx: UserTransaction) {
-    expenses.value.push({amount: tnx.amount, description: tnx.description})
+    expenses.value.push({amount: tnx.amount, description: tnx.description, creation_ts: tnx.creation_ts})
   }
 
   // Responsible for updating the state and logging in the user
@@ -60,6 +61,15 @@ export const useUserdataStore = defineStore('userdata', () => {
     }
   }
 
+  function logOutUser() {
+    username.value = ''
+    email.value = ''
+    balance.value = 0.0
+    authToken.value = ''
+    loggedIn.value = false
+    localStorage.clear()
+  }
+
   return {
     username,
     email,
@@ -73,6 +83,7 @@ export const useUserdataStore = defineStore('userdata', () => {
     getExpenses,
     isLoggedIn,
     loadUserFromLocalStorage,
-    addExpense
+    addExpense,
+    logOutUser
   }
 })
