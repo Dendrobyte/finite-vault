@@ -108,7 +108,6 @@ function canSubmitForm(): boolean {
 // Retrieve all transactions for current user and load them into the state
 // TODO: Put this function on the state and do state stuff :)
 async function getUserTransactions() {
-  console.log('hit!')
   await axios
     .get(`${BACKEND_URI}/getUserTransactions`, {
       params: { email: userdata.email },
@@ -118,14 +117,11 @@ async function getUserTransactions() {
     })
     .then((res) => {
       if (res.status === 200) {
-        console.log('data: ', res.data)
         // TODO: Create a list, sort by creation TS, and then the components should take care of themselves
         //       Or if I wanted to be fancy, you could binary insert. But imo one page refresh is better.
         res.data.forEach((tnx: UserTransaction) => {
-          console.log('Filing away: ', tnx)
           userdata.addExpense(tnx)
         })
-        console.log(res.data)
       }
     })
     .catch((err) => {
