@@ -80,7 +80,6 @@ async function submitExpense() {
       },
       {
         headers: {
-          'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }
@@ -114,7 +113,6 @@ async function getUserTransactions() {
     .get(`${BACKEND_URI}/getUserTransactions`, {
       params: { email: userdata.email },
       headers: {
-        'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     })
